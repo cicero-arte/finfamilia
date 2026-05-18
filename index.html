@@ -494,6 +494,18 @@
     .badge.safe { background: var(--verde-100); color: var(--verde-800); }
     .badge.new { background: var(--azul-100); color: var(--azul-600); }
 
+    /* ─── CHIPS RELATORIO ─── */
+    .chip {
+      padding: 6px 14px; border-radius: 20px;
+      border: 0.5px solid var(--borda-2); background: var(--branco);
+      font-size: 12px; font-weight: 500; cursor: pointer;
+      color: var(--texto-2); font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s;
+    }
+    .chip:hover { background: var(--cinza-100); }
+    .chip.ativo { background: var(--verde); color: white; border-color: var(--verde); }
+    .chip.cat-chip.ativo { background: var(--verde-100); color: var(--verde-800); border-color: var(--verde-200); }
+
     /* empty */
     .empty { text-align: center; padding: 40px 20px; color: var(--texto-3); }
     .empty-ico { font-size: 36px; margin-bottom: 10px; opacity: 0.5; }
@@ -868,6 +880,77 @@
 </div>
 
 <!-- ══════════════════════════════════════
+     TELA — RELATÓRIOS
+══════════════════════════════════════ -->
+<div class="tela" id="t-relat">
+  <div class="topbar">
+    <div class="topbar-info">
+      <div class="topbar-title">Relatórios</div>
+      <div class="topbar-sub">Análise de gastos por categoria</div>
+    </div>
+  </div>
+  <div class="scroll-body">
+
+    <!-- filtro de período -->
+    <div class="card">
+      <div class="card-title">Período</div>
+      <div class="two-col">
+        <div class="field"><label>De</label><input type="date" id="r-de"></div>
+        <div class="field"><label>Até</label><input type="date" id="r-ate"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+        <button onclick="rPeriodo('mes')"   class="chip ativo" id="rp-mes">Este mês</button>
+        <button onclick="rPeriodo('3m')"    class="chip" id="rp-3m">3 meses</button>
+        <button onclick="rPeriodo('ano')"   class="chip" id="rp-ano">Este ano</button>
+        <button onclick="rPeriodo('custom')" class="chip" id="rp-custom">Personalizado</button>
+      </div>
+    </div>
+
+    <!-- filtro tipo -->
+    <div class="card">
+      <div class="card-title">Tipo de lançamento</div>
+      <div class="tipo-tgl">
+        <button class="tipo-btn s ativo" id="r-tb-s" onclick="rSetTipo('s')">↑ Saídas</button>
+        <button class="tipo-btn e" id="r-tb-e" onclick="rSetTipo('e')">↓ Entradas</button>
+      </div>
+    </div>
+
+    <!-- filtro categorias -->
+    <div class="card">
+      <div class="card-title">Categorias <span style="color:var(--texto-3);font-size:11px;">(selecione uma ou mais)</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;" id="r-cats"></div>
+    </div>
+
+    <!-- botão aplicar -->
+    <button class="btn-prim g" onclick="renderRelatorio()">Aplicar filtros</button>
+
+    <!-- resultado: totais -->
+    <div id="r-totais" style="display:none;">
+      <div class="card">
+        <div class="card-title" id="r-totais-title">Resumo</div>
+        <div style="display:flex;gap:10px;" id="r-totais-vals"></div>
+      </div>
+    </div>
+
+    <!-- resultado: gráfico barras -->
+    <div id="r-grafico-card" style="display:none;" class="card">
+      <div class="card-title" id="r-grafico-title">Gastos por categoria</div>
+      <canvas id="r-chart" height="200"></canvas>
+    </div>
+
+    <!-- resultado: lista -->
+    <div id="r-lista-card" style="display:none;" class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div class="card-title" style="margin:0" id="r-lista-title">Lançamentos</div>
+        <div id="r-count" style="font-size:12px;color:var(--texto-3);"></div>
+      </div>
+      <div class="tx-list" id="r-lista"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
      NAVBAR
 ══════════════════════════════════════ -->
 <nav class="navbar">
@@ -888,6 +971,10 @@
   <button class="nav-it" data-tela="t-metas" onclick="navIr(this,'t-metas')">
     <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
     Metas
+  </button>
+  <button class="nav-it" data-tela="t-relat" onclick="navIr(this,'t-relat')">
+    <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+    Relatórios
   </button>
   <button class="nav-it" data-tela="t-fin" onclick="navIr(this,'t-fin')">
     <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0" stroke-linecap="round"/><line x1="12" y1="19" x2="12" y2="22" stroke-linecap="round"/><line x1="8" y1="22" x2="16" y2="22" stroke-linecap="round"/></svg>
@@ -1151,6 +1238,7 @@ function ir(tela) {
   if(tela==='t-invest') renderInvest();
   if(tela==='t-perfil') renderPerfil();
   if(tela==='t-fin') initFin();
+  if(tela==='t-relat') initRelatorio();
 }
 function navIr(el, tela) {
   document.querySelectorAll('.nav-it').forEach(b=>b.classList.remove('ativo'));
@@ -1614,6 +1702,153 @@ function renderPerfil() {
       <span style="color:var(--texto-3);font-size:16px;">›</span>
     </div>`+
     row('❓','Ajuda e suporte','');
+}
+
+// ══════════════════════════
+// RELATÓRIOS
+// ══════════════════════════
+let rTipo = 's';
+let rCatsSel = [];
+let rChart = null;
+
+function initRelatorio() {
+  // período padrão: mês atual
+  const hoje = new Date();
+  const ini  = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+  document.getElementById('r-de').value  = ini.toISOString().slice(0,10);
+  document.getElementById('r-ate').value = hoje.toISOString().slice(0,10);
+  rPeriodo('mes');
+  rSetTipo('s');
+  renderCatChips();
+}
+
+function rPeriodo(p) {
+  document.querySelectorAll('[id^="rp-"]').forEach(b=>b.classList.remove('ativo'));
+  document.getElementById(`rp-${p}`)?.classList.add('ativo');
+  if(p==='custom') return;
+  const hoje = new Date();
+  let ini;
+  if(p==='mes')  ini = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+  if(p==='3m')   ini = new Date(hoje.getFullYear(), hoje.getMonth()-2, 1);
+  if(p==='ano')  ini = new Date(hoje.getFullYear(), 0, 1);
+  document.getElementById('r-de').value  = ini.toISOString().slice(0,10);
+  document.getElementById('r-ate').value = hoje.toISOString().slice(0,10);
+}
+
+function rSetTipo(t) {
+  rTipo = t;
+  document.getElementById('r-tb-s').className = 'tipo-btn s' + (t==='s'?' ativo':'');
+  document.getElementById('r-tb-e').className = 'tipo-btn e' + (t==='e'?' ativo':'');
+}
+
+function renderCatChips() {
+  rCatsSel = [...categorias]; // começa com todas selecionadas
+  const el = document.getElementById('r-cats');
+  el.innerHTML = categorias.map(c=>`
+    <button class="chip cat-chip ativo" data-cat="${c}" onclick="toggleCatChip(this,'${c}')">${c}</button>
+  `).join('');
+}
+
+function toggleCatChip(el, cat) {
+  el.classList.toggle('ativo');
+  if(el.classList.contains('ativo')) {
+    if(!rCatsSel.includes(cat)) rCatsSel.push(cat);
+  } else {
+    rCatsSel = rCatsSel.filter(c=>c!==cat);
+  }
+}
+
+function renderRelatorio() {
+  const de  = document.getElementById('r-de').value;
+  const ate = document.getElementById('r-ate').value;
+  if(!de||!ate){ toast('Selecione o período.', true); return; }
+  if(!rCatsSel.length){ toast('Selecione ao menos uma categoria.', true); return; }
+
+  // filtra transações
+  const txs = transacoes.filter(t => {
+    return t.tipo === rTipo &&
+      t.data >= de && t.data <= ate &&
+      rCatsSel.includes(t.cat);
+  });
+
+  // agrupa por categoria
+  const porCat = {};
+  rCatsSel.forEach(c => porCat[c] = 0);
+  txs.forEach(t => { porCat[t.cat] = (porCat[t.cat]||0) + t.val; });
+
+  // remove categorias zeradas
+  const cats  = Object.keys(porCat).filter(c=>porCat[c]>0).sort((a,b)=>porCat[b]-porCat[a]);
+  const vals  = cats.map(c=>porCat[c]);
+  const total = vals.reduce((s,v)=>s+v,0);
+
+  const label = rTipo==='s'?'Saídas':'Entradas';
+  const cor   = rTipo==='s'?'#D85A30':'#1D9E75';
+  const corBg = rTipo==='s'?'#FAECE7':'#E1F5EE';
+
+  // totais
+  document.getElementById('r-totais').style.display = 'block';
+  document.getElementById('r-totais-title').textContent = `Resumo — ${label}`;
+  document.getElementById('r-totais-vals').innerHTML = `
+    <div class="hero-stat" style="background:${corBg};flex:1;">
+      <div class="hero-stat-label" style="color:${cor};opacity:1;">Total ${label}</div>
+      <div class="hero-stat-val" style="color:${cor};">R$ ${fmt(total)}</div>
+    </div>
+    <div class="hero-stat" style="background:var(--cinza-100);flex:1;">
+      <div class="hero-stat-label">Lançamentos</div>
+      <div class="hero-stat-val">${txs.length}</div>
+    </div>
+    <div class="hero-stat" style="background:var(--cinza-100);flex:1;">
+      <div class="hero-stat-label">Categorias</div>
+      <div class="hero-stat-val">${cats.length}</div>
+    </div>`;
+
+  // gráfico barras
+  document.getElementById('r-grafico-card').style.display = 'block';
+  document.getElementById('r-grafico-title').textContent = `${label} por categoria`;
+  if(rChart) rChart.destroy();
+  const ctx = document.getElementById('r-chart').getContext('2d');
+  rChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: cats.length ? cats : ['Sem dados'],
+      datasets:[{
+        data: vals.length ? vals : [0],
+        backgroundColor: cor,
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>`R$ ${fmt(c.parsed.y)}`}}
+      },
+      scales:{
+        x:{grid:{display:false}, ticks:{font:{size:11},color:'#6B6B68'}},
+        y:{display:false}
+      }
+    }
+  });
+
+  // lista
+  document.getElementById('r-lista-card').style.display = 'block';
+  document.getElementById('r-lista-title').textContent  = `Lançamentos (${txs.length})`;
+  const sorted = [...txs].sort((a,b)=>b.data.localeCompare(a.data));
+  const lista  = document.getElementById('r-lista');
+  if(!sorted.length){
+    lista.innerHTML='<div class="empty"><div class="empty-ico">📋</div><p>Nenhum lançamento no período.</p></div>';
+  } else {
+    lista.innerHTML = sorted.map((t,i)=>`
+      <div class="tx" style="${i===sorted.length-1?'border-bottom:none':''};cursor:pointer;" onclick="abrirEditarLanc(${t.id})">
+        <div class="tx-ico" style="background:${t.tipo==='e'?'#E1F5EE':'#FAECE7'}">${t.tipo==='e'?'↓':'↑'}</div>
+        <div class="tx-info">
+          <div class="tx-nome">${t.desc}</div>
+          <div class="tx-meta">${t.cat} · ${t.conta} · ${t.data.slice(8)}/${t.data.slice(5,7)}</div>
+        </div>
+        <div class="tx-val ${t.tipo}">${t.tipo==='e'?'+':'−'} R$ ${fmt(t.val)}</div>
+      </div>`).join('');
+  }
 }
 
 // ══════════════════════════
