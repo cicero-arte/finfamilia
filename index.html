@@ -717,9 +717,6 @@
         <label>Categoria</label>
         <select id="l-cat">
           <option value="">Selecione</option>
-          <option>Alimentação</option><option>Saúde</option><option>Transporte</option>
-          <option>Lazer</option><option>Moradia</option><option>Salário</option>
-          <option>Investimento</option><option>Educação</option><option>Outro</option>
         </select>
       </div>
     </div>
@@ -950,6 +947,27 @@
   </div>
 </div>
 
+<!-- modal categorias -->
+<div class="modal-over" id="mo-cat" onclick="fecharModais(event)">
+  <div class="modal-box" onclick="event.stopPropagation()" style="max-height:85vh;overflow-y:auto;">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Categorias</div>
+
+    <!-- adicionar nova -->
+    <div style="display:flex;gap:8px;align-items:center;">
+      <input type="text" id="cat-nova" placeholder="Nome da nova categoria..."
+        style="flex:1;padding:10px 12px;border:0.5px solid var(--borda-2);border-radius:var(--r-sm);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;"
+        onkeydown="if(event.key==='Enter')adicionarCategoria()">
+      <button onclick="adicionarCategoria()" style="padding:10px 16px;background:var(--verde);color:white;border:none;border-radius:var(--r-sm);font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap;">+ Criar</button>
+    </div>
+
+    <!-- lista de categorias -->
+    <div id="cat-lista" style="display:flex;flex-direction:column;gap:2px;margin-top:4px;"></div>
+
+    <button class="btn-sec" onclick="fecharModais()" style="margin-top:8px;">Fechar</button>
+  </div>
+</div>
+
 <!-- modal editar lançamento -->
 <div class="modal-over" id="mo-lanc" onclick="fecharModais(event)">
   <div class="modal-box" onclick="event.stopPropagation()">
@@ -975,9 +993,6 @@
         <label>Categoria</label>
         <select id="ml-cat">
           <option value="">Selecione</option>
-          <option>Alimentação</option><option>Saúde</option><option>Transporte</option>
-          <option>Lazer</option><option>Moradia</option><option>Salário</option>
-          <option>Investimento</option><option>Educação</option><option>Outro</option>
         </select>
       </div>
     </div>
@@ -1593,7 +1608,91 @@ function renderPerfil() {
     row('🌙','Tema','Claro')+
     row('📱','Vincular WhatsApp','Para alertas do Fin')+
     row('🤖','Chave da API (Fin)', localStorage.getItem('ff_apikey') ? 'Configurada ✓' : 'Não configurada')+
+    `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:0.5px solid var(--borda);cursor:pointer;" onclick="abrirCategorias()">
+      <span style="font-size:18px;">🏷️</span>
+      <div style="flex:1;"><div style="font-size:13px;">Categorias</div><div style="font-size:11px;color:var(--texto-2);">${categorias.length} categorias</div></div>
+      <span style="color:var(--texto-3);font-size:16px;">›</span>
+    </div>`+
     row('❓','Ajuda e suporte','');
+}
+
+// ══════════════════════════
+// CATEGORIAS
+// ══════════════════════════
+let categorias = [
+  'Alimentação','Padaria','Restaurante','Saúde','Farmácia','Transporte',
+  'Lazer','Moradia','Salário','Investimento','Educação','Vestuário',
+  'Assinaturas','Pets','Outro'
+];
+
+function abrirCategorias() {
+  renderCatLista();
+  document.getElementById('mo-cat').classList.add('open');
+}
+
+function renderCatLista() {
+  const lista = document.getElementById('cat-lista');
+  lista.innerHTML = categorias.map((c,i) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r-sm);background:var(--cinza-100);margin-bottom:4px;">
+      <span style="font-size:13px;flex:1;">${c}</span>
+      <button onclick="editarCategoria(${i})"
+        style="padding:5px 10px;border:0.5px solid var(--borda-2);border-radius:var(--r-sm);background:white;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--texto-2);">
+        ✏️ Editar
+      </button>
+      ${categorias.length > 1 ? `<button onclick="excluirCategoria(${i})"
+        style="padding:5px 10px;border:0.5px solid var(--coral-100);border-radius:var(--r-sm);background:white;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--coral-600);">
+        🗑
+      </button>` : ''}
+    </div>`).join('');
+}
+
+function adicionarCategoria() {
+  const inp = document.getElementById('cat-nova');
+  const nome = inp.value.trim();
+  if(!nome){ toast('Digite um nome para a categoria.', true); return; }
+  if(categorias.find(c=>c.toLowerCase()===nome.toLowerCase())){ toast('Categoria já existe.', true); return; }
+  categorias.push(nome);
+  inp.value = '';
+  renderCatLista();
+  atualizarSelects();
+  renderPerfil();
+  toast(`Categoria "${nome}" criada!`);
+}
+
+function editarCategoria(idx) {
+  const novoNome = prompt('Novo nome para a categoria:', categorias[idx]);
+  if(!novoNome || !novoNome.trim()) return;
+  const nomeAntigo = categorias[idx];
+  categorias[idx] = novoNome.trim();
+  // atualiza lançamentos que usavam essa categoria
+  transacoes.forEach(t => { if(t.cat === nomeAntigo) t.cat = novoNome.trim(); });
+  renderCatLista();
+  atualizarSelects();
+  renderPerfil();
+  toast(`Categoria renomeada para "${novoNome.trim()}"`);
+}
+
+function excluirCategoria(idx) {
+  const nome = categorias[idx];
+  if(!confirm(`Excluir a categoria "${nome}"? Os lançamentos com ela passarão para "Outro".`)) return;
+  transacoes.forEach(t => { if(t.cat === nome) t.cat = 'Outro'; });
+  categorias.splice(idx, 1);
+  if(!categorias.includes('Outro')) categorias.push('Outro');
+  renderCatLista();
+  atualizarSelects();
+  renderPerfil();
+  toast(`Categoria "${nome}" excluída.`);
+}
+
+function atualizarSelects() {
+  // atualiza todos os selects de categoria no app
+  ['l-cat','ml-cat'].forEach(id => {
+    const sel = document.getElementById(id);
+    if(!sel) return;
+    const atual = sel.value;
+    sel.innerHTML = '<option value="">Selecione</option>' +
+      categorias.map(c=>`<option${c===atual?' selected':''}>${c}</option>`).join('');
+  });
 }
 
 // ── AJUSTE DE VALOR ──
@@ -1672,32 +1771,56 @@ function excluirLanc() {
 }
 
 // ── FIN LANÇA DE VERDADE ──
+function finDetectarCategoria(txt) {
+  const t = txt.toLowerCase();
+  if(/pão|padaria|café|lanche|pizza|restaurante|almoço|jantar|mercado|supermercado|feira|açougue|fruta|legume|comida|ifood|delivery|bebida/.test(t)) return 'Alimentação';
+  if(/uber|taxi|ônibus|metrô|gasolina|combustível|estacionamento|pedágio|carro|moto|transporte|passagem/.test(t)) return 'Transporte';
+  if(/farmácia|médico|consulta|exame|plano de saúde|dentista|remédio|hospital|clínica|saúde/.test(t)) return 'Saúde';
+  if(/netflix|spotify|cinema|show|ingresso|jogo|lazer|viagem|hotel|passeio|diversão/.test(t)) return 'Lazer';
+  if(/aluguel|condomínio|luz|água|internet|telefone|gás|moradia|iptu|casa/.test(t)) return 'Moradia';
+  if(/salário|pagamento|renda|freelance|trabalho|receita|pix recebido/.test(t)) return 'Salário';
+  if(/escola|faculdade|curso|livro|material|mensalidade|educação/.test(t)) return 'Educação';
+  if(/investimento|ações|tesouro|cdb|fii|poupança|aplicação/.test(t)) return 'Investimento';
+  return 'Outro';
+}
+
 function finLancarTransacao(txt) {
-  // tenta extrair valor, descrição e conta da mensagem
-  const valorMatch = txt.match(/r?\$?\s*(\d+[\.,]?\d*)/i);
+  // extrai valor
+  const valorMatch = txt.match(/r?\$?\s*(\d+(?:[\.,]\d+)?)/i);
   const valor = valorMatch ? parseFloat(valorMatch[1].replace(',','.')) : 0;
   if(!valor) return false;
 
   // detecta tipo
-  const isSaida = /gast|pag|comprei|compra|saída|saida|débito|debito/i.test(txt);
+  const isSaida = /gast|pag|comprei|compra|saída|saida|débito|debito|lançar gasto|lança gasto/i.test(txt);
   const tipo = isSaida ? 's' : 'e';
 
-  // tenta detectar conta mencionada
+  // detecta conta mencionada
   const contaEncontrada = contas.find(c => txt.toLowerCase().includes(c.nome.toLowerCase()));
   const conta = contaEncontrada || contas.find(c=>c.titular==='ana') || contas[0];
 
-  // descrição: remove valor e palavras-chave de comando
-  const desc = txt
-    .replace(/r?\$?\s*\d+[\.,]?\d*/gi,'')
-    .replace(/gastei|paguei|comprei|lança|lançar|no|na|em|pelo|pela|com/gi,'')
-    .replace(/\s+/g,' ').trim() || 'Lançamento via Fin';
+  // extrai descrição limpa:
+  // remove palavras de comando, valor monetário e nome da conta
+  let desc = txt
+    .replace(/lança(r)?\s*(gasto|entrada|saída|saida)?/gi, '')
+    .replace(/gast(ei|o|ar)?|pagu(ei|ar)|comprei|compra(r)?|recebi|lança(r)?/gi, '')
+    .replace(/r?\$?\s*\d+(?:[\.,]\d+)?/gi, '')           // remove valor
+    .replace(/\bno\b|\bna\b|\bem\b|\bdo\b|\bda\b|\bde\b|\bpelo\b|\bpela\b|\bpor\b/gi, '') // preposições
+    .replace(new RegExp(conta.nome, 'gi'), '')             // remove nome da conta
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
+  // capitaliza primeira letra
+  desc = desc ? desc.charAt(0).toUpperCase() + desc.slice(1) : 'Lançamento';
+
+  // detecta categoria automaticamente
+  const cat = finDetectarCategoria(txt);
 
   const tx = {
     id: Date.now(),
     tipo, val: valor,
-    desc: desc.charAt(0).toUpperCase() + desc.slice(1),
+    desc,
     data: new Date().toISOString().slice(0,10),
-    cat: 'Outro', conta: conta.nome, titular: conta.titular
+    cat, conta: conta.nome, titular: conta.titular
   };
   transacoes.unshift(tx);
   conta.saldo += tipo==='e' ? valor : -valor;
@@ -2018,6 +2141,7 @@ renderDash();
 renderContas();
 renderMetas();
 renderInvest();
+atualizarSelects();
 verificarSetup();
 </script>
   <!-- PWA Service Worker -->
