@@ -777,9 +777,6 @@
       <div class="topbar-title">Assistente Fin</div>
       <div class="topbar-sub">Consultor financeiro com IA</div>
     </div>
-    <div style="width:34px;height:34px;border-radius:50%;background:var(--verde);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
-    </div>
   </div>
 
   <!-- chat scrollável — ocupa todo espaço disponível -->
@@ -1594,7 +1591,11 @@ TRANSAÇÕES RECENTES:\n${txResumo}
 
 METAS:\n${metasResumo}
 
-Seja objetivo. Use no máximo 3 parágrafos curtos. Pode usar emojis com moderação.`;
+INSTRUÇÕES IMPORTANTES:
+- Se o usuário disser que gastou ou pagou algo (ex: "gastei R$50 em polpas de fruta no Nubank"), confirme que o lançamento foi registrado, informe o valor, a descrição e a conta. Responda de forma positiva e breve.
+- Se o usuário perguntar sobre gastos, saldos ou metas, use os dados acima para responder com precisão.
+- Se o usuário pedir sugestão de investimento, analise o saldo disponível e sugira opções adequadas ao mercado brasileiro.
+- Seja objetivo. Use no máximo 2 parágrafos curtos. Pode usar emojis com moderação.`;
 }
 
 function initFin() {
@@ -1633,13 +1634,17 @@ async function finEnviar() {
   const txt = inp.value.trim();
   if(!txt) return;
 
+  const apiKey = getApiKey();
+  if(!apiKey) {
+    finMsgAdd('Fin', '⚠️ Chave da API não configurada. Vá em Perfil → Chave da API (Fin) para configurar.', false);
+    return;
+  }
+
   inp.value = '';
   finMsgAdd('Você', txt, true);
   finHistorico.push({ role:'user', content:txt });
 
-  // bolha de digitando
   const loadWrap = finMsgAdd('Fin', '<span style="opacity:0.45;font-style:italic;">digitando...</span>', false);
-
   inp.disabled = true;
 
   try {
@@ -1647,7 +1652,7 @@ async function finEnviar() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': getApiKey(),
+        'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
         'anthropic-dangerous-direct-browser-access': 'true',
       },
@@ -1658,15 +1663,25 @@ async function finEnviar() {
         messages: finHistorico,
       })
     });
+
     const data = await resp.json();
-    const resposta = data?.content?.[0]?.text || 'Não consegui processar. Tente novamente.';
+
+    if(data.error) {
+      loadWrap.remove();
+      finMsgAdd('Fin', `⚠️ Erro da API: ${data.error.message}`, false);
+      inp.disabled = false;
+      return;
+    }
+
+    const resposta = data?.content?.[0]?.text || 'Resposta vazia. Tente novamente.';
     loadWrap.remove();
     finMsgAdd('Fin', resposta.replace(/\n/g,'<br>'), false);
     finHistorico.push({ role:'assistant', content:resposta });
     if(finHistorico.length > 20) finHistorico = finHistorico.slice(-20);
+
   } catch(e) {
     loadWrap.remove();
-    finMsgAdd('Fin', '⚠️ Erro de conexão. Verifique sua internet e tente novamente.', false);
+    finMsgAdd('Fin', `⚠️ Erro de conexão: ${e.message}. Verifique sua internet e tente novamente.`, false);
   }
 
   inp.disabled = false;
