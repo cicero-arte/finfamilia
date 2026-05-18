@@ -704,6 +704,8 @@
       <div class="val-row">
         <div class="val-prefix">R$</div>
         <input class="val-input" type="number" id="l-val" placeholder="0,00" min="0" step="0.01">
+        <button onclick="ajustarValor(-1)" style="width:40px;height:44px;border:none;background:transparent;font-size:22px;color:var(--coral-600);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-left:0.5px solid var(--borda);">−</button>
+        <button onclick="ajustarValor(1)"  style="width:40px;height:44px;border:none;background:transparent;font-size:22px;color:var(--verde-600);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-left:0.5px solid var(--borda);">+</button>
       </div>
     </div>
 
@@ -944,6 +946,44 @@
       <button onclick="fecharPopupMic()" style="width:100%;padding:12px;background:transparent;color:var(--texto-2);border:0.5px solid var(--borda-2);border-radius:var(--r-sm);font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;">
         Agora não
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- modal editar lançamento -->
+<div class="modal-over" id="mo-lanc" onclick="fecharModais(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Editar lançamento</div>
+    <div class="tipo-tgl" style="margin-bottom:4px;">
+      <button class="tipo-btn e ativo" id="ml-tb-e" onclick="mlSetTipo('e')">↓ Entrada</button>
+      <button class="tipo-btn s" id="ml-tb-s" onclick="mlSetTipo('s')">↑ Saída</button>
+    </div>
+    <div class="field">
+      <label>Valor</label>
+      <div class="val-row">
+        <div class="val-prefix">R$</div>
+        <input class="val-input" type="number" id="ml-val" placeholder="0,00" min="0" step="0.01">
+        <button onclick="ajustarValorModal(-1)" style="width:40px;height:44px;border:none;background:transparent;font-size:22px;color:var(--coral-600);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-left:0.5px solid var(--borda);">−</button>
+        <button onclick="ajustarValorModal(1)"  style="width:40px;height:44px;border:none;background:transparent;font-size:22px;color:var(--verde-600);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-left:0.5px solid var(--borda);">+</button>
+      </div>
+    </div>
+    <div class="field"><label>Descrição</label><input type="text" id="ml-desc" placeholder="Ex: Supermercado..."></div>
+    <div class="two-col">
+      <div class="field"><label>Data</label><input type="date" id="ml-data"></div>
+      <div class="field">
+        <label>Categoria</label>
+        <select id="ml-cat">
+          <option value="">Selecione</option>
+          <option>Alimentação</option><option>Saúde</option><option>Transporte</option>
+          <option>Lazer</option><option>Moradia</option><option>Salário</option>
+          <option>Investimento</option><option>Educação</option><option>Outro</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-sec" style="flex:1;color:var(--coral-600);border-color:var(--coral-100);" onclick="excluirLanc()">🗑 Excluir</button>
+      <button class="btn-prim g" style="flex:2;" onclick="salvarLanc()">Salvar</button>
     </div>
   </div>
 </div>
@@ -1224,7 +1264,7 @@ function renderTxList(id, txs) {
   const el = document.getElementById(id);
   if(!txs.length){ el.innerHTML='<div class="empty"><div class="empty-ico">📋</div><p>Nenhum lançamento ainda.</p></div>'; return; }
   el.innerHTML = txs.map((t,i)=>`
-    <div class="tx" style="${i===txs.length-1?'border-bottom:none':''}">
+    <div class="tx" style="${i===txs.length-1?'border-bottom:none':''};cursor:pointer;" onclick="abrirEditarLanc(${t.id})">
       <div class="tx-ico" style="background:${t.tipo==='e'?'#E1F5EE':'#FAECE7'}">
         ${t.tipo==='e'?'↓':'↑'}
       </div>
@@ -1556,9 +1596,114 @@ function renderPerfil() {
     row('❓','Ajuda e suporte','');
 }
 
-// ══════════════════════════
-// ASSISTENTE FIN — IA REAL
-// ══════════════════════════
+// ── AJUSTE DE VALOR ──
+function ajustarValor(dir) {
+  const inp = document.getElementById('l-val');
+  const atual = parseFloat(inp.value) || 0;
+  const novo = Math.max(0, atual + dir);
+  inp.value = novo % 1 === 0 ? novo : novo.toFixed(2);
+}
+function ajustarValorModal(dir) {
+  const inp = document.getElementById('ml-val');
+  const atual = parseFloat(inp.value) || 0;
+  const novo = Math.max(0, atual + dir);
+  inp.value = novo % 1 === 0 ? novo : novo.toFixed(2);
+}
+
+// ── EDITAR LANÇAMENTO ──
+let lancEditId = null;
+let mlTipo = 'e';
+
+function abrirEditarLanc(id) {
+  const t = transacoes.find(t=>t.id===id);
+  if(!t) return;
+  lancEditId = id;
+  mlTipo = t.tipo;
+  document.getElementById('ml-tb-e').className = 'tipo-btn e' + (t.tipo==='e'?' ativo':'');
+  document.getElementById('ml-tb-s').className = 'tipo-btn s' + (t.tipo==='s'?' ativo':'');
+  document.getElementById('ml-val').value  = t.val;
+  document.getElementById('ml-desc').value = t.desc;
+  document.getElementById('ml-data').value = t.data;
+  document.getElementById('ml-cat').value  = t.cat;
+  document.getElementById('mo-lanc').classList.add('open');
+}
+
+function mlSetTipo(t) {
+  mlTipo = t;
+  document.getElementById('ml-tb-e').className = 'tipo-btn e' + (t==='e'?' ativo':'');
+  document.getElementById('ml-tb-s').className = 'tipo-btn s' + (t==='s'?' ativo':'');
+}
+
+function salvarLanc() {
+  const t = transacoes.find(t=>t.id===lancEditId);
+  if(!t) return;
+  const novoVal  = parseFloat(document.getElementById('ml-val').value) || 0;
+  const novoTipo = mlTipo;
+  // reverte saldo antigo na conta
+  const cAnt = contas.find(c=>c.nome===t.conta && c.titular===t.titular);
+  if(cAnt) cAnt.saldo -= t.tipo==='e' ? t.val : -t.val;
+  // aplica novo valor
+  t.tipo  = novoTipo;
+  t.val   = novoVal;
+  t.desc  = document.getElementById('ml-desc').value.trim() || t.desc;
+  t.data  = document.getElementById('ml-data').value || t.data;
+  t.cat   = document.getElementById('ml-cat').value  || t.cat;
+  if(cAnt) cAnt.saldo += novoTipo==='e' ? novoVal : -novoVal;
+  fecharModais();
+  renderTxList('l-txs', transacoes.slice(0,5));
+  renderTxList('d-txs', transacoes.slice(0,4));
+  renderDash();
+  toast('Lançamento atualizado!');
+}
+
+function excluirLanc() {
+  if(!confirm('Excluir este lançamento?')) return;
+  const t = transacoes.find(t=>t.id===lancEditId);
+  if(t) {
+    const c = contas.find(c=>c.nome===t.conta && c.titular===t.titular);
+    if(c) c.saldo -= t.tipo==='e' ? t.val : -t.val;
+    transacoes = transacoes.filter(tx=>tx.id!==lancEditId);
+  }
+  fecharModais();
+  renderTxList('l-txs', transacoes.slice(0,5));
+  renderTxList('d-txs', transacoes.slice(0,4));
+  renderDash();
+  toast('Lançamento excluído.');
+}
+
+// ── FIN LANÇA DE VERDADE ──
+function finLancarTransacao(txt) {
+  // tenta extrair valor, descrição e conta da mensagem
+  const valorMatch = txt.match(/r?\$?\s*(\d+[\.,]?\d*)/i);
+  const valor = valorMatch ? parseFloat(valorMatch[1].replace(',','.')) : 0;
+  if(!valor) return false;
+
+  // detecta tipo
+  const isSaida = /gast|pag|comprei|compra|saída|saida|débito|debito/i.test(txt);
+  const tipo = isSaida ? 's' : 'e';
+
+  // tenta detectar conta mencionada
+  const contaEncontrada = contas.find(c => txt.toLowerCase().includes(c.nome.toLowerCase()));
+  const conta = contaEncontrada || contas.find(c=>c.titular==='ana') || contas[0];
+
+  // descrição: remove valor e palavras-chave de comando
+  const desc = txt
+    .replace(/r?\$?\s*\d+[\.,]?\d*/gi,'')
+    .replace(/gastei|paguei|comprei|lança|lançar|no|na|em|pelo|pela|com/gi,'')
+    .replace(/\s+/g,' ').trim() || 'Lançamento via Fin';
+
+  const tx = {
+    id: Date.now(),
+    tipo, val: valor,
+    desc: desc.charAt(0).toUpperCase() + desc.slice(1),
+    data: new Date().toISOString().slice(0,10),
+    cat: 'Outro', conta: conta.nome, titular: conta.titular
+  };
+  transacoes.unshift(tx);
+  conta.saldo += tipo==='e' ? valor : -valor;
+  renderDash();
+  return { tx, conta };
+}
 const FIN_SUGS = [
   'Quanto gastei esse mês?',
   'Qual minha maior despesa?',
@@ -1642,7 +1787,18 @@ async function finEnviar() {
 
   inp.value = '';
   finMsgAdd('Você', txt, true);
-  finHistorico.push({ role:'user', content:txt });
+
+  // tenta lançar de verdade se for pedido de transação
+  const isLancamento = /gast|pag|comprei|recebi|lança|lançar|gastei|paguei/i.test(txt);
+  let lancInfo = null;
+  if(isLancamento) {
+    lancInfo = finLancarTransacao(txt);
+  }
+
+  finHistorico.push({ role:'user', content: lancInfo
+    ? txt + ` [SISTEMA: lançamento registrado — ${lancInfo.tx.tipo==='s'?'Saída':'Entrada'} de R$ ${fmt(lancInfo.tx.val)} em ${lancInfo.conta.nome}]`
+    : txt
+  });
 
   const loadWrap = finMsgAdd('Fin', '<span style="opacity:0.45;font-style:italic;">digitando...</span>', false);
   inp.disabled = true;
