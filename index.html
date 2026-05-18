@@ -922,7 +922,10 @@
     </div>
 
     <!-- botão aplicar -->
-    <button class="btn-prim g" onclick="renderRelatorio()">Aplicar filtros</button>
+    <div style="display:flex;gap:10px;">
+      <button class="btn-prim g" style="flex:2;" onclick="renderRelatorio()">Aplicar filtros</button>
+      <button class="btn-sec" style="flex:1;" onclick="limparRelatorio()">Limpar</button>
+    </div>
 
     <!-- resultado: totais -->
     <div id="r-totais" style="display:none;">
@@ -1710,6 +1713,17 @@ function renderPerfil() {
 let rTipo = 's';
 let rCatsSel = [];
 let rChart = null;
+
+function limparRelatorio() {
+  rPeriodo('mes');
+  rSetTipo('s');
+  renderCatChips();
+  document.getElementById('r-totais').style.display      = 'none';
+  document.getElementById('r-grafico-card').style.display = 'none';
+  document.getElementById('r-lista-card').style.display   = 'none';
+  if(rChart){ rChart.destroy(); rChart = null; }
+  toast('Filtros limpos.');
+}
 
 function initRelatorio() {
   // período padrão: mês atual
