@@ -699,7 +699,7 @@
     </button>
     <div class="topbar-info">
       <div class="topbar-title">Novo lançamento</div>
-      <div class="topbar-sub" id="l-sub">Ana · maio 2025</div>
+      <div class="topbar-sub" id="l-sub">Ana · maio 2026</div>
     </div>
     <div class="av-sm" style="background:#9FE1CB;color:#085041;width:32px;height:32px;font-size:11px;">AN</div>
   </div>
@@ -1199,14 +1199,14 @@ let contas = [
 ];
 
 let transacoes = [
-  {id:1,tipo:'s',val:234.50,desc:'Supermercado',data:'2025-05-17',cat:'Alimentação',conta:'Nubank',titular:'ana'},
-  {id:2,tipo:'e',val:6200,desc:'Salário maio — Ana',data:'2025-05-15',cat:'Salário',conta:'Nubank',titular:'ana'},
-  {id:3,tipo:'e',val:8500,desc:'Salário maio — Carlos',data:'2025-05-15',cat:'Salário',conta:'Inter',titular:'carlos'},
-  {id:4,tipo:'s',val:55.90,desc:'Netflix família',data:'2025-05-12',cat:'Lazer',conta:'Nubank',titular:'familia'},
-  {id:5,tipo:'s',val:89.90,desc:'Plano celular',data:'2025-05-10',cat:'Saúde',conta:'Bradesco',titular:'ana'},
-  {id:6,tipo:'s',val:180,desc:'Combustível',data:'2025-05-14',cat:'Transporte',conta:'Inter',titular:'carlos'},
-  {id:7,tipo:'e',val:800,desc:'Mesada — Bia',data:'2025-05-01',cat:'Salário',conta:'Caixa',titular:'bia'},
-  {id:8,tipo:'s',val:120,desc:'Material escolar',data:'2025-05-05',cat:'Educação',conta:'Caixa',titular:'bia'},
+  {id:1,tipo:'s',val:234.50,desc:'Supermercado',data:'2026-05-17',cat:'Alimentação',conta:'Nubank',titular:'ana'},
+  {id:2,tipo:'e',val:6200,desc:'Salário maio — Ana',data:'2026-05-15',cat:'Salário',conta:'Nubank',titular:'ana'},
+  {id:3,tipo:'e',val:8500,desc:'Salário maio — Carlos',data:'2026-05-15',cat:'Salário',conta:'Inter',titular:'carlos'},
+  {id:4,tipo:'s',val:55.90,desc:'Netflix família',data:'2026-05-12',cat:'Lazer',conta:'Nubank',titular:'familia'},
+  {id:5,tipo:'s',val:89.90,desc:'Plano celular',data:'2026-05-10',cat:'Saúde',conta:'Bradesco',titular:'ana'},
+  {id:6,tipo:'s',val:180,desc:'Combustível',data:'2026-05-14',cat:'Transporte',conta:'Inter',titular:'carlos'},
+  {id:7,tipo:'e',val:800,desc:'Mesada — Bia',data:'2026-05-01',cat:'Salário',conta:'Caixa',titular:'bia'},
+  {id:8,tipo:'s',val:120,desc:'Material escolar',data:'2026-05-05',cat:'Educação',conta:'Caixa',titular:'bia'},
 ];
 
 let metas = [
@@ -1785,7 +1785,18 @@ function renderRelatorio() {
       rCatsSel.includes(t.cat);
   });
 
-  // agrupa por categoria
+  if(!txs.length) {
+    document.getElementById('r-totais').style.display      = 'none';
+    document.getElementById('r-grafico-card').style.display = 'none';
+    document.getElementById('r-lista-card').style.display   = 'block';
+    document.getElementById('r-lista-title').textContent    = 'Lançamentos';
+    document.getElementById('r-lista').innerHTML = `
+      <div class="empty">
+        <div class="empty-ico">📋</div>
+        <p>Nenhum lançamento encontrado<br>no período e categorias selecionados.</p>
+      </div>`;
+    return;
+  }
   const porCat = {};
   rCatsSel.forEach(c => porCat[c] = 0);
   txs.forEach(t => { porCat[t.cat] = (porCat[t.cat]||0) + t.val; });
