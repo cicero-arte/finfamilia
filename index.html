@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>FinFamília</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --verde:        #1D9E75;
+      --verde-100:    #E1F5EE;
+      --verde-200:    #9FE1CB;
+      --verde-600:    #0F6E56;
+      --verde-800:    #085041;
+      --coral:        #D85A30;
+      --coral-100:    #FAECE7;
+      --coral-600:    #993C1D;
+      --coral-800:    #712B13;
+      --azul-100:     #E6F1FB;
+      --azul-600:     #185FA5;
+      --rosa-100:     #FBEAF0;
+      --rosa-600:     #993556;
+      --amber-100:    #FAEEDA;
+      --amber-600:    #854F0B;
+      --cinza-bg:     #F4F4F1;
+      --cinza-100:    #F1EFE8;
+      --cinza-200:    #D3D1C7;
+      --cinza-500:    #888780;
+      --cinza-700:    #444441;
+      --branco:       #FFFFFF;
+      --texto:        #1A1A18;
+      --texto-2:      #6B6B68;
+      --texto-3:      #ADADAA;
+      --borda:        rgba(0,0,0,0.08);
+      --borda-2:      rgba(0,0,0,0.15);
+      --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 22px;
+    }
+
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cinza-bg);
+      color: var(--texto);
+      display: flex; flex-direction: column;
+      max-width: 430px; margin: 0 auto;
+      position: relative;
+    }
+
+    /* ─── TELAS ─── */
+    .tela { display: none; flex-direction: column; height: 100%; overflow: hidden; }
+    .tela.ativa { display: flex; }
+    .scroll-body { flex: 1; overflow-y: auto; padding: 16px 16px 100px; display: flex; flex-direction: column; gap: 16px; }
+    .scroll-body::-webkit-scrollbar { display: none; }
+
+    /* ─── TOPBAR ─── */
+    .topbar {
+      background: var(--branco); border-bottom: 0.5px solid var(--borda);
+      padding: 13px 16px; display: flex; align-items: center; gap: 10px;
+      flex-shrink: 0;
+    }
+    .topbar-logo { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 500; }
+    .logo-hex {
+      width: 28px; height: 28px; background: var(--verde); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-hex svg { width: 16px; height: 16px; }
+    .topbar-title { font-size: 15px; font-weight: 500; flex: 1; }
+    .topbar-sub { font-size: 12px; color: var(--texto-2); margin-top: 1px; }
+    .topbar-info { flex: 1; }
+    .btn-icon {
+      width: 32px; height: 32px; border-radius: var(--r-sm);
+      border: 0.5px solid var(--borda-2); background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--texto-2); flex-shrink: 0;
+    }
+    .btn-icon:hover { background: var(--cinza-100); }
+    .btn-icon svg { width: 18px; height: 18px; }
+    .btn-back { text-decoration: none; }
+    .av-pill {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--cinza-100); border: 0.5px solid var(--borda-2);
+      border-radius: 20px; padding: 4px 10px 4px 5px; cursor: pointer;
+    }
+    .av-sm {
+      width: 22px; height: 22px; border-radius: 50%;
+      font-size: 9px; font-weight: 500;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .av-pill span { font-size: 12px; font-weight: 500; }
+
+    /* ─── NAVBAR ─── */
+    .navbar {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px;
+      background: var(--branco); border-top: 0.5px solid var(--borda);
+      display: flex; z-index: 200; padding: 8px 0 20px;
+    }
+    .nav-it {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+      cursor: pointer; color: var(--texto-3); font-size: 10px; border: none; background: none;
+      font-family: 'DM Sans', sans-serif; padding: 4px 0;
+      transition: color 0.15s;
+    }
+    .nav-it svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+    .nav-it.ativo { color: var(--verde); }
+    .nav-it-center {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer; border: none; background: none; padding: 0;
+    }
+    .nav-fab {
+      width: 48px; height: 48px; border-radius: 50%; background: var(--verde);
+      display: flex; align-items: center; justify-content: center;
+      margin-top: -20px; border: 3px solid var(--branco);
+    }
+    .nav-fab svg { width: 22px; height: 22px; stroke: white; fill: none; stroke-width: 2; }
+    .nav-it-center span { font-size: 10px; color: var(--texto-3); margin-top: 2px; }
+
+    /* ─── CARDS ─── */
+    .card {
+      background: var(--branco); border: 0.5px solid var(--borda);
+      border-radius: var(--r-lg); padding: 16px;
+    }
+    .card-title { font-size: 12px; font-weight: 500; color: var(--texto-2); margin-bottom: 12px; }
+
+    /* ─── HERO SALDO ─── */
+    .hero {
+      background: var(--verde); border-radius: var(--r-lg);
+      padding: 20px; color: white; position: relative;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -40px; right: -40px;
+      width: 150px; height: 150px; border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      pointer-events: none;
+    }
+    .hero::after {
+      content: ''; position: absolute; bottom: -30px; right: 60px;
+      width: 90px; height: 90px; border-radius: 50%;
+      background: rgba(255,255,255,0.04);
+      pointer-events: none;
+    }
+    .hero-label { font-size: 12px; opacity: 0.75; margin-bottom: 4px; }
+    .hero-valor { font-size: 30px; font-weight: 500; letter-spacing: -0.5px; line-height: 1.1; }
+    .hero-stats { display: flex; gap: 8px; margin-top: 14px; }
+    .hero-stat {
+      flex: 1; background: rgba(255,255,255,0.13);
+      border-radius: var(--r-sm); padding: 9px 10px; min-width: 0;
+    }
+    .hero-stat-label { font-size: 10px; opacity: 0.7; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hero-stat-val { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* ─── MEMBER FILTER ─── */
+    .members { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 4px; min-height: 44px; align-items: center; }
+    .members::-webkit-scrollbar { display: none; }
+    .m-chip {
+      display: flex; align-items: center; gap: 7px;
+      padding: 6px 12px; border-radius: 20px;
+      border: 0.5px solid var(--borda-2); background: var(--branco);
+      cursor: pointer; white-space: nowrap; font-size: 13px;
+      font-family: 'DM Sans', sans-serif; color: var(--texto-2);
+      transition: all 0.15s;
+    }
+    .m-chip:hover { background: var(--cinza-100); }
+    .m-chip.ativo { border: 1.5px solid var(--verde); background: var(--verde-100); color: var(--verde-800); }
+    .m-av {
+      width: 22px; height: 22px; border-radius: 50%;
+      font-size: 9px; font-weight: 500;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .m-chip span { font-weight: 500; }
+
+    /* ─── METRICS GRID ─── */
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .metric {
+      background: var(--cinza-100); border-radius: var(--r-md); padding: 12px 14px;
+    }
+    .metric-label { font-size: 11px; color: var(--texto-2); margin-bottom: 4px; }
+    .metric-val { font-size: 16px; font-weight: 500; }
+    .metric-val.g { color: var(--verde-600); }
+    .metric-val.r { color: var(--coral-600); }
+
+    /* ─── PIZZA ─── */
+    .pizza-wrap {
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+    }
+    .pizza-canvas-wrap { position: relative; width: 200px; height: 200px; flex-shrink: 0; }
+    .pizza-canvas-wrap canvas { width: 200px !important; height: 200px !important; }
+    .pizza-center {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      text-align: center; pointer-events: none;
+    }
+    .pizza-center-label { font-size: 11px; color: var(--texto-2); }
+    .pizza-center-val { font-size: 14px; font-weight: 500; color: var(--texto); margin-top: 2px; }
+    .pizza-legend { width: 100%; display: flex; flex-direction: column; gap: 4px; }
+    .p-leg {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; cursor: pointer; padding: 5px 8px;
+      border-radius: var(--r-sm); transition: background 0.1s;
+    }
+    .p-leg:hover { background: var(--cinza-100); }
+    .p-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .p-nome { flex: 1; color: var(--texto-2); }
+    .p-val { font-weight: 500; color: var(--texto); }
+    .p-pct { color: var(--texto-3); font-size: 11px; margin-left: 3px; }
+
+    /* ─── LINHA ─── */
+    .line-canvas-wrap { width: 100%; height: 120px; }
+    .line-canvas-wrap canvas { width: 100% !important; }
+    .line-legend { display: flex; gap: 14px; margin-bottom: 10px; }
+    .l-leg { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--texto-2); }
+    .l-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+    /* ─── TRANSAÇÕES ─── */
+    .tx-list { display: flex; flex-direction: column; }
+    .tx {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 0; border-bottom: 0.5px solid var(--borda);
+    }
+    .tx:last-child { border-bottom: none; }
+    .tx-ico {
+      width: 34px; height: 34px; border-radius: var(--r-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .tx-info { flex: 1; }
+    .tx-nome { font-size: 13px; font-weight: 500; }
+    .tx-meta { font-size: 11px; color: var(--texto-2); margin-top: 1px; }
+    .tx-val { font-size: 13px; font-weight: 500; }
+    .tx-val.e { color: var(--verde-600); }
+    .tx-val.s { color: var(--coral-600); }
+
+    /* ─── CONTAS ─── */
+    .conta-card {
+      background: var(--branco); border: 0.5px solid var(--borda);
+      border-radius: var(--r-md); overflow: hidden; transition: border-color 0.15s;
+    }
+    .conta-card:hover { border-color: var(--borda-2); }
+    .conta-head {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; cursor: pointer;
+    }
+    .conta-ico {
+      width: 38px; height: 38px; border-radius: var(--r-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .conta-nome-txt { font-size: 14px; font-weight: 500; }
+    .conta-tipo-txt { font-size: 11px; color: var(--texto-2); margin-top: 1px; }
+    .conta-saldo-txt { font-size: 15px; font-weight: 500; text-align: right; }
+    .conta-visib {
+      font-size: 11px; margin-top: 3px; text-align: right;
+      display: flex; align-items: center; gap: 3px; justify-content: flex-end;
+    }
+    .conta-visib.pub { color: var(--verde); }
+    .conta-visib.priv { color: var(--texto-3); }
+    .conta-acoes {
+      display: none; border-top: 0.5px solid var(--borda);
+      padding: 10px 14px; background: #FAFAFA;
+      gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    }
+    .conta-acoes.open { display: flex; }
+    .ag { display: flex; gap: 6px; }
+    .ab {
+      display: flex; align-items: center; gap: 5px;
+      padding: 6px 11px; border-radius: var(--r-sm);
+      border: 0.5px solid var(--borda-2); background: var(--branco);
+      font-size: 12px; font-weight: 500; cursor: pointer;
+      color: var(--texto-2); font-family: 'DM Sans', sans-serif;
+      transition: background 0.15s;
+    }
+    .ab:hover { background: var(--cinza-100); }
+    .ab.prim { background: var(--verde-100); border-color: var(--verde-200); color: var(--verde-800); }
+    .ab.prim:hover { background: #c5e8d8; }
+    .ab.danger { border-color: #F0997B; color: var(--coral-800); }
+    .ab.danger:hover { background: var(--coral-100); }
+    .visib-row { display: flex; align-items: center; gap: 8px; }
+    .visib-lbl { font-size: 12px; color: var(--texto-2); }
+    .tgl {
+      width: 36px; height: 20px; border-radius: 10px;
+      background: var(--cinza-200); border: none; cursor: pointer;
+      position: relative; transition: background 0.2s; flex-shrink: 0;
+    }
+    .tgl.on { background: var(--verde); }
+    .tgl-k {
+      width: 14px; height: 14px; border-radius: 50%; background: white;
+      position: absolute; top: 3px; left: 3px; transition: left 0.2s;
+    }
+    .tgl.on .tgl-k { left: 19px; }
+
+    /* ─── FORMULÁRIO ─── */
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 12px; font-weight: 500; color: var(--texto-2); letter-spacing: 0.02em; }
+    .field input, .field select, .field textarea {
+      width: 100%; padding: 10px 12px;
+      border: 0.5px solid var(--borda-2); border-radius: var(--r-sm);
+      font-size: 14px; font-family: 'DM Sans', sans-serif;
+      color: var(--texto); background: var(--branco); outline: none;
+      transition: border-color 0.15s;
+    }
+    .field input:focus, .field select:focus { border-color: var(--verde); }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* valor grande */
+    .val-row {
+      display: flex; align-items: center;
+      border: 0.5px solid var(--borda-2); border-radius: var(--r-sm);
+      overflow: hidden; background: var(--branco);
+    }
+    .val-prefix {
+      padding: 0 12px; font-size: 14px; font-weight: 500;
+      color: var(--texto-2); background: var(--cinza-100);
+      height: 44px; display: flex; align-items: center;
+      border-right: 0.5px solid var(--borda);
+    }
+    .val-input {
+      flex: 1; border: none; padding: 0 12px;
+      font-size: 22px; font-weight: 500; height: 44px;
+      color: var(--texto); font-family: 'DM Sans', sans-serif; outline: none;
+      background: transparent;
+    }
+
+    /* tipo toggle */
+    .tipo-tgl { display: grid; grid-template-columns: 1fr 1fr; border-radius: var(--r-sm); overflow: hidden; border: 0.5px solid var(--borda-2); }
+    .tipo-btn {
+      padding: 10px; font-size: 13px; font-weight: 500;
+      border: none; cursor: pointer; background: transparent;
+      color: var(--texto-2); font-family: 'DM Sans', sans-serif;
+      transition: background 0.15s, color 0.15s;
+    }
+    .tipo-btn.e.ativo { background: var(--verde-100); color: var(--verde-800); }
+    .tipo-btn.s.ativo { background: var(--coral-100); color: var(--coral-800); }
+
+    /* icon picker */
+    .icon-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 8px; }
+    .ic-opt {
+      height: 42px; border-radius: var(--r-sm);
+      border: 0.5px solid var(--borda-2); background: var(--branco);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 19px; cursor: pointer; transition: all 0.15s;
+    }
+    .ic-opt:hover { background: var(--cinza-100); }
+    .ic-opt.sel { border: 2px solid var(--verde); background: var(--verde-100); }
+
+    /* conta chips na tela lançamento */
+    .cc-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+    .cc {
+      border: 0.5px solid var(--borda-2); border-radius: var(--r-sm);
+      padding: 10px 6px; cursor: pointer; background: var(--branco);
+      text-align: center; transition: all 0.15s;
+    }
+    .cc:hover { background: var(--cinza-100); }
+    .cc.sel { border: 1.5px solid var(--verde); background: var(--verde-100); }
+    .cc.sel .cc-nome { color: var(--verde-800); }
+    .cc-ico { font-size: 18px; margin-bottom: 3px; }
+    .cc-nome { font-size: 12px; font-weight: 500; color: var(--texto); }
+    .cc-val { font-size: 10px; color: var(--texto-2); margin-top: 1px; }
+
+    /* recorrente */
+    .rec-row {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--branco); border: 0.5px solid var(--borda);
+      border-radius: var(--r-sm); padding: 12px 14px;
+    }
+    .rec-lbl { font-size: 13px; }
+    .rec-sub { font-size: 11px; color: var(--texto-2); margin-top: 2px; }
+
+    /* botões principais */
+    .btn-prim {
+      width: 100%; padding: 13px; border-radius: var(--r-sm);
+      border: none; cursor: pointer; font-size: 14px; font-weight: 500;
+      font-family: 'DM Sans', sans-serif; display: flex; align-items: center;
+      justify-content: center; gap: 8px; transition: background 0.15s;
+    }
+    .btn-prim.g { background: var(--verde); color: white; }
+    .btn-prim.g:hover { background: var(--verde-600); }
+    .btn-prim.r { background: var(--coral); color: white; }
+    .btn-prim.r:hover { background: var(--coral-600); }
+    .btn-sec {
+      flex: 1; padding: 12px; border: 0.5px solid var(--borda-2);
+      border-radius: var(--r-sm); background: transparent;
+      font-size: 14px; font-weight: 500; cursor: pointer;
+      color: var(--texto-2); font-family: 'DM Sans', sans-serif;
+    }
+    .btn-sec:hover { background: var(--cinza-100); }
+
+    /* seção header */
+    .sec-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .sec-title { font-size: 13px; font-weight: 500; color: var(--texto-2); }
+    .btn-add {
+      display: flex; align-items: center; gap: 5px;
+      background: var(--verde); color: white; border: none;
+      border-radius: var(--r-sm); padding: 6px 11px;
+      font-size: 12px; font-weight: 500; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; transition: background 0.15s;
+    }
+    .btn-add:hover { background: var(--verde-600); }
+
+    /* ─── MODAL ─── */
+    .modal-over {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4); z-index: 300;
+      align-items: flex-end; justify-content: center;
+    }
+    .modal-over.open { display: flex; }
+    .modal-box {
+      background: var(--branco); border-radius: var(--r-xl) var(--r-xl) 0 0;
+      padding: 20px 16px 40px; width: 100%; max-width: 430px;
+      animation: up 0.25s ease; display: flex; flex-direction: column; gap: 14px;
+    }
+    @keyframes up { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .modal-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--cinza-200); margin: 0 auto; }
+    .modal-title { font-size: 17px; font-weight: 500; }
+    .modal-btns { display: flex; gap: 10px; }
+
+    /* ─── TOAST ─── */
+    .toast {
+      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+      background: var(--verde-800); color: white;
+      padding: 10px 16px; border-radius: var(--r-md);
+      font-size: 13px; font-weight: 500;
+      display: flex; align-items: center; gap: 8px;
+      opacity: 0; transition: opacity 0.2s; z-index: 999;
+      white-space: nowrap; pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+    .toast.err { background: var(--coral-600); }
+
+    /* ─── FIN IA BAR ─── */
+    .fin-bar {
+      background: var(--verde-800); border-radius: var(--r-md);
+      padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .fin-bar:hover { background: var(--verde-600); }
+    .fin-mic {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .fin-mic svg { width: 18px; height: 18px; stroke: white; fill: none; stroke-width: 2; }
+    .fin-info { flex: 1; }
+    .fin-label { font-size: 11px; color: rgba(255,255,255,0.65); margin-bottom: 2px; }
+    .fin-prompt { font-size: 13px; color: white; }
+    .fin-arrow { color: rgba(255,255,255,0.5); font-size: 18px; }
+
+    /* ─── METAS ─── */
+    .meta-card {
+      background: var(--branco); border: 0.5px solid var(--borda);
+      border-radius: var(--r-md); padding: 14px 16px;
+    }
+    .meta-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .meta-ico { font-size: 22px; }
+    .meta-nome { font-size: 14px; font-weight: 500; }
+    .meta-prazo { font-size: 11px; color: var(--texto-2); }
+    .meta-prog-bar { height: 6px; background: var(--cinza-200); border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+    .meta-prog-fill { height: 100%; background: var(--verde); border-radius: 3px; transition: width 0.3s; }
+    .meta-vals { display: flex; justify-content: space-between; font-size: 12px; }
+    .meta-atual { font-weight: 500; color: var(--verde-600); }
+    .meta-total { color: var(--texto-2); }
+
+    /* ─── INVEST ─── */
+    .inv-card {
+      background: var(--branco); border: 0.5px solid var(--borda);
+      border-radius: var(--r-md); padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .inv-ico { font-size: 24px; flex-shrink: 0; }
+    .inv-info { flex: 1; }
+    .inv-nome { font-size: 13px; font-weight: 500; }
+    .inv-desc { font-size: 11px; color: var(--texto-2); margin-top: 2px; }
+    .inv-taxa { text-align: right; }
+    .inv-pct { font-size: 16px; font-weight: 500; color: var(--verde-600); }
+    .inv-tipo { font-size: 11px; color: var(--texto-2); margin-top: 1px; }
+    .badge {
+      display: inline-block; font-size: 10px; font-weight: 500;
+      padding: 2px 8px; border-radius: 10px; margin-top: 4px;
+    }
+    .badge.hot { background: var(--coral-100); color: var(--coral-800); }
+    .badge.safe { background: var(--verde-100); color: var(--verde-800); }
+    .badge.new { background: var(--azul-100); color: var(--azul-600); }
+
+    /* empty */
+    .empty { text-align: center; padding: 40px 20px; color: var(--texto-3); }
+    .empty-ico { font-size: 36px; margin-bottom: 10px; opacity: 0.5; }
+    .divider { height: 0.5px; background: var(--borda); }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     TELA 1 — DASHBOARD
+══════════════════════════════════════ -->
+<div class="tela ativa" id="t-dash">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="logo-hex">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M8 2L13 5V11L8 14L3 11V5Z" fill="white" opacity="0.9"/></svg>
+      </div>
+      FinFamília
+    </div>
+    <div style="display:flex;gap:8px;margin-left:auto;">
+      <button class="btn-icon" onclick="ir('t-invest')" title="Sugestões Fin">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+      </button>
+      <button class="btn-icon" onclick="ir('t-perfil')" title="Perfil">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="scroll-body">
+    <!-- filtro membros -->
+    <div class="members" id="d-members">
+      <button class="m-chip ativo" data-m="familia" onclick="dashFiltrar(this)">
+        <div class="m-av" style="background:var(--cinza-200);color:var(--cinza-700)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <span>Família</span>
+      </button>
+      <button class="m-chip" data-m="ana" onclick="dashFiltrar(this)">
+        <div class="m-av" style="background:#9FE1CB;color:#085041">AN</div><span>Ana</span>
+      </button>
+      <button class="m-chip" data-m="carlos" onclick="dashFiltrar(this)">
+        <div class="m-av" style="background:#B5D4F4;color:#0C447C">CA</div><span>Carlos</span>
+      </button>
+      <button class="m-chip" data-m="bia" onclick="dashFiltrar(this)">
+        <div class="m-av" style="background:#F4C0D1;color:#72243E">BI</div><span>Bia</span>
+      </button>
+    </div>
+
+    <!-- hero -->
+    <div class="hero">
+      <div class="hero-label" id="d-hero-label">Saldo total da família</div>
+      <div class="hero-valor" id="d-hero-val">R$ 28.650</div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-label">Entradas (maio)</div>
+          <div class="hero-stat-val" id="d-ent">R$ 19.800</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-label">Saídas (maio)</div>
+          <div class="hero-stat-val" id="d-sai">R$ 9.430</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-label">Contas</div>
+          <div class="hero-stat-val" id="d-qnt">8</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- gráfico pizza -->
+    <div class="card">
+      <div class="card-title" id="d-pizza-title">Distribuição — família</div>
+      <div class="pizza-wrap">
+        <div class="pizza-canvas-wrap">
+          <canvas id="pizzaChart"></canvas>
+          <div class="pizza-center">
+            <div class="pizza-center-label" id="pc-label">total</div>
+            <div class="pizza-center-val" id="pc-val">R$ 28.650</div>
+          </div>
+        </div>
+        <div class="pizza-legend" id="pizza-leg"></div>
+      </div>
+    </div>
+
+    <!-- gráfico linhas -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="card-title" style="margin:0" id="d-line-title">Progressão — maio</div>
+        <div class="line-legend">
+          <div class="l-leg"><div class="l-dot" style="background:var(--verde)"></div>Entradas</div>
+          <div class="l-leg"><div class="l-dot" style="background:var(--coral)"></div>Saídas</div>
+        </div>
+      </div>
+      <div class="line-canvas-wrap"><canvas id="lineChart" height="120"></canvas></div>
+    </div>
+
+    <!-- transações recentes -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div class="card-title" style="margin:0" id="d-tx-title">Últimas transações</div>
+        <button style="font-size:12px;color:var(--verde);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;" onclick="ir('t-lanc')">Ver todas</button>
+      </div>
+      <div class="tx-list" id="d-txs"></div>
+    </div>
+
+    <!-- barra Fin -->
+    <div class="fin-bar" onclick="ir('t-fin')">
+      <div class="fin-mic">
+        <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0"/><line x1="12" y1="19" x2="12" y2="22" stroke-linecap="round"/><line x1="8" y1="22" x2="16" y2="22" stroke-linecap="round"/></svg>
+      </div>
+      <div class="fin-info">
+        <div class="fin-label">Assistente Fin</div>
+        <div class="fin-prompt">"Gastei R$50 no mercado, lança no Nubank"</div>
+      </div>
+      <div class="fin-arrow">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     TELA 2 — CONTAS
+══════════════════════════════════════ -->
+<div class="tela" id="t-contas">
+  <div class="topbar">
+    <div class="topbar-info">
+      <div class="topbar-title">Minhas contas</div>
+      <div class="topbar-sub">Gerencie e configure cada conta</div>
+    </div>
+    <div class="av-pill" onclick="ciclaTitular()" id="av-pill">
+      <div class="av-sm" style="background:#9FE1CB;color:#085041" id="av-sig">AN</div>
+      <span id="av-nome">Ana</span>
+      <span style="color:var(--texto-3);font-size:11px;">↓</span>
+    </div>
+  </div>
+  <div class="scroll-body">
+    <!-- hero titular -->
+    <div class="hero">
+      <div class="hero-label" id="c-label">Saldo total de Ana</div>
+      <div class="hero-valor" id="c-saldo">R$ 16.380</div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="hero-stat-label">Entradas</div><div class="hero-stat-val" id="c-ent">R$ 8.200</div></div>
+        <div class="hero-stat"><div class="hero-stat-label">Saídas</div><div class="hero-stat-val" id="c-sai">R$ 3.450</div></div>
+        <div class="hero-stat"><div class="hero-stat-label">Contas</div><div class="hero-stat-val" id="c-qnt">3</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="sec-head" style="margin-bottom:10px;">
+        <div class="sec-title">Contas</div>
+        <button class="btn-add" onclick="abrirModalConta()">+ Nova conta</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;" id="c-lista"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     TELA 3 — LANÇAMENTO
+══════════════════════════════════════ -->
+<div class="tela" id="t-lanc">
+  <div class="topbar">
+    <button class="btn-icon btn-back" onclick="ir('t-dash')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m7-7l-7 7 7 7"/></svg>
+    </button>
+    <div class="topbar-info">
+      <div class="topbar-title">Novo lançamento</div>
+      <div class="topbar-sub" id="l-sub">Ana · maio 2025</div>
+    </div>
+    <div class="av-sm" style="background:#9FE1CB;color:#085041;width:32px;height:32px;font-size:11px;">AN</div>
+  </div>
+  <div class="scroll-body">
+    <div id="l-toast-inline" style="display:none;padding:10px 14px;border-radius:var(--r-sm);font-size:13px;font-weight:500;"></div>
+
+    <div class="tipo-tgl">
+      <button class="tipo-btn e ativo" id="tb-e" onclick="setTipo('e')">↓ Entrada</button>
+      <button class="tipo-btn s" id="tb-s" onclick="setTipo('s')">↑ Saída</button>
+    </div>
+
+    <div class="field">
+      <label>Valor</label>
+      <div class="val-row">
+        <div class="val-prefix">R$</div>
+        <input class="val-input" type="number" id="l-val" placeholder="0,00" min="0" step="0.01">
+      </div>
+    </div>
+
+    <div class="field"><label>Descrição</label><input type="text" id="l-desc" placeholder="Ex: Supermercado, Salário, Netflix..."></div>
+
+    <div class="two-col">
+      <div class="field"><label>Data</label><input type="date" id="l-data"></div>
+      <div class="field">
+        <label>Categoria</label>
+        <select id="l-cat">
+          <option value="">Selecione</option>
+          <option>Alimentação</option><option>Saúde</option><option>Transporte</option>
+          <option>Lazer</option><option>Moradia</option><option>Salário</option>
+          <option>Investimento</option><option>Educação</option><option>Outro</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Conta</label>
+      <div class="cc-grid" id="l-contas"></div>
+    </div>
+
+    <div class="rec-row">
+      <div>
+        <div class="rec-lbl">Lançamento recorrente</div>
+        <div class="rec-sub">Repete todo mês automaticamente</div>
+      </div>
+      <button class="tgl" id="l-rec" onclick="this.classList.toggle('on')" aria-label="Recorrência">
+        <div class="tgl-k"></div>
+      </button>
+    </div>
+
+    <button class="btn-prim g" id="l-btn" onclick="lancar()">+ Registrar entrada</button>
+
+    <div class="divider"></div>
+
+    <div>
+      <div class="sec-title" style="margin-bottom:10px;" id="l-list-title">Últimos lançamentos</div>
+      <div class="tx-list" id="l-txs"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     TELA 4 — METAS
+══════════════════════════════════════ -->
+<div class="tela" id="t-metas">
+  <div class="topbar">
+    <div class="topbar-info">
+      <div class="topbar-title">Metas</div>
+      <div class="topbar-sub">Planejamento e objetivos</div>
+    </div>
+    <button class="btn-add" onclick="abrirModalMeta()">+ Nova meta</button>
+  </div>
+  <div class="scroll-body" id="m-body">
+    <div style="display:flex;flex-direction:column;gap:10px;" id="m-lista"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     TELA 5 — ASSISTENTE FIN
+══════════════════════════════════════ -->
+<div class="tela" id="t-fin">
+  <!-- topbar -->
+  <div class="topbar" style="flex-shrink:0;">
+    <button class="btn-icon btn-back" onclick="ir('t-dash')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m7-7l-7 7 7 7"/></svg>
+    </button>
+    <div class="topbar-info">
+      <div class="topbar-title">Assistente Fin</div>
+      <div class="topbar-sub">Consultor financeiro com IA</div>
+    </div>
+    <div style="width:34px;height:34px;border-radius:50%;background:var(--verde);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+    </div>
+  </div>
+
+  <!-- chat scrollável — ocupa todo espaço disponível -->
+  <div id="fin-chat-area" style="flex:1;overflow-y:auto;padding:16px 16px 8px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch;">
+    <div id="fin-chat" style="display:flex;flex-direction:column;gap:12px;"></div>
+    <div id="fin-sugs" style="display:flex;flex-wrap:wrap;gap:8px;padding-top:4px;"></div>
+  </div>
+
+  <!-- barra de input — sempre visível, nunca scrolla -->
+  <div style="flex-shrink:0;background:var(--branco);border-top:0.5px solid var(--borda);padding:10px 16px 80px;">
+    <div style="display:flex;gap:8px;align-items:center;">
+      <!-- campo de texto -->
+      <input type="text" id="fin-input"
+        placeholder="Pergunte algo..."
+        style="flex:1;min-width:0;padding:10px 14px;border:0.5px solid var(--borda-2);border-radius:22px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;background:var(--cinza-100);color:var(--texto);"
+        onkeydown="if(event.key==='Enter'){finEnviar();return false;}">
+      <!-- botão microfone -->
+      <button id="fin-mic-btn" onclick="finToggleMic()"
+        style="width:42px;height:42px;border-radius:50%;background:var(--cinza-100);border:0.5px solid var(--borda-2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.2s,border-color 0.2s;">
+        <svg id="fin-mic-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6B68" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="2" width="6" height="12" rx="3"/>
+          <path d="M5 10a7 7 0 0014 0"/>
+          <line x1="12" y1="19" x2="12" y2="22"/>
+          <line x1="8" y1="22" x2="16" y2="22"/>
+        </svg>
+      </button>
+      <!-- botão enviar -->
+      <button onclick="finEnviar()"
+        style="width:42px;height:42px;border-radius:50%;background:var(--verde);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     TELA 6 — INVESTIMENTOS
+══════════════════════════════════════ -->
+<div class="tela" id="t-invest">
+  <div class="topbar">
+    <button class="btn-icon btn-back" onclick="ir('t-dash')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m7-7l-7 7 7 7"/></svg>
+    </button>
+    <div class="topbar-info">
+      <div class="topbar-title">Sugestões de investimento</div>
+      <div class="topbar-sub">Baseado no seu perfil e saldo disponível</div>
+    </div>
+  </div>
+  <div class="scroll-body">
+    <div class="card" style="background:var(--verde-100);border-color:var(--verde-200);">
+      <div style="font-size:13px;color:var(--verde-800);">💡 <strong>Fin identificou</strong> R$ 3.200 parados na sua Carteira. Veja o que fazer com esse dinheiro:</div>
+    </div>
+    <div class="sec-title">Renda fixa</div>
+    <div style="display:flex;flex-direction:column;gap:10px;" id="inv-lista"></div>
+    <div class="sec-title" style="margin-top:8px;">Renda variável</div>
+    <div style="display:flex;flex-direction:column;gap:10px;" id="inv-lista2"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     TELA 7 — PERFIL
+══════════════════════════════════════ -->
+<div class="tela" id="t-perfil">
+  <div class="topbar">
+    <button class="btn-icon btn-back" onclick="ir('t-dash')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m7-7l-7 7 7 7"/></svg>
+    </button>
+    <div class="topbar-title">Perfil e configurações</div>
+  </div>
+  <div class="scroll-body">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 0 6px;">
+      <div style="width:72px;height:72px;border-radius:50%;background:#9FE1CB;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:500;color:#085041;">AN</div>
+      <div style="font-size:17px;font-weight:500;">Ana Silva</div>
+      <div style="font-size:13px;color:var(--texto-2);">ana@familia.com</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:2px;">
+      <div style="font-size:12px;font-weight:500;color:var(--texto-2);margin-bottom:8px;">Membros da família</div>
+      <div style="background:var(--branco);border:0.5px solid var(--borda);border-radius:var(--r-md);overflow:hidden;">
+        <div id="p-membros"></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:2px;">
+      <div style="font-size:12px;font-weight:500;color:var(--texto-2);margin-bottom:8px;">Configurações</div>
+      <div style="background:var(--branco);border:0.5px solid var(--borda);border-radius:var(--r-md);overflow:hidden;">
+        <div id="p-configs"></div>
+      </div>
+    </div>
+    <button class="btn-sec" style="color:var(--coral-600);border-color:var(--coral-100);">Sair da conta</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     NAVBAR
+══════════════════════════════════════ -->
+<nav class="navbar">
+  <button class="nav-it ativo" data-tela="t-dash" onclick="navIr(this,'t-dash')">
+    <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+    Início
+  </button>
+  <button class="nav-it" data-tela="t-contas" onclick="navIr(this,'t-contas')">
+    <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+    Contas
+  </button>
+  <button class="nav-it-center" onclick="navIr(null,'t-lanc')">
+    <div class="nav-fab">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </div>
+    <span>Lançar</span>
+  </button>
+  <button class="nav-it" data-tela="t-metas" onclick="navIr(this,'t-metas')">
+    <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+    Metas
+  </button>
+  <button class="nav-it" data-tela="t-fin" onclick="navIr(this,'t-fin')">
+    <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0" stroke-linecap="round"/><line x1="12" y1="19" x2="12" y2="22" stroke-linecap="round"/><line x1="8" y1="22" x2="16" y2="22" stroke-linecap="round"/></svg>
+    Fin
+  </button>
+</nav>
+
+<!-- ══════════════════════════════════════
+     MODAIS
+══════════════════════════════════════ -->
+
+<!-- popup microfone -->
+<div id="mo-mic" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:400;align-items:flex-end;justify-content:center;">
+  <div style="background:var(--branco);border-radius:var(--r-xl) var(--r-xl) 0 0;padding:24px 20px 48px;width:100%;max-width:430px;animation:up 0.25s ease;">
+    <div style="width:36px;height:4px;border-radius:2px;background:var(--cinza-200);margin:0 auto 24px;"></div>
+    <div style="width:64px;height:64px;border-radius:50%;background:var(--verde-100);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--verde)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="2" width="6" height="12" rx="3"/>
+        <path d="M5 10a7 7 0 0014 0"/>
+        <line x1="12" y1="19" x2="12" y2="22"/>
+        <line x1="8" y1="22" x2="16" y2="22"/>
+      </svg>
+    </div>
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:17px;font-weight:500;margin-bottom:8px;">Microfone bloqueado</div>
+      <div style="font-size:14px;color:var(--texto-2);line-height:1.6;">O navegador bloqueou o acesso ao microfone. Você precisa liberar manualmente nas configurações.</div>
+    </div>
+
+    <!-- passo a passo visual -->
+    <div style="background:var(--cinza-100);border-radius:var(--r-md);padding:14px 16px;margin-bottom:20px;display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="width:22px;height:22px;border-radius:50%;background:var(--verde);color:white;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">1</div>
+        <div style="font-size:13px;color:var(--texto);">Toque no ícone de <strong>cadeado 🔒</strong> ou <strong>ⓘ</strong> na barra de endereço do navegador</div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="width:22px;height:22px;border-radius:50%;background:var(--verde);color:white;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">2</div>
+        <div style="font-size:13px;color:var(--texto);">Toque em <strong>Permissões do site</strong> ou <strong>Configurações</strong></div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="width:22px;height:22px;border-radius:50%;background:var(--verde);color:white;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">3</div>
+        <div style="font-size:13px;color:var(--texto);">Em <strong>Microfone</strong>, selecione <strong>Permitir</strong></div>
+      </div>
+    </div>
+
+    <!-- botões -->
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button onclick="micAbrirConfiguracoes()" style="width:100%;padding:14px;background:var(--verde);color:white;border:none;border-radius:var(--r-sm);font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
+        Abrir configurações do navegador
+      </button>
+      <button onclick="micTentarNovamente()" style="width:100%;padding:12px;background:var(--verde-100);color:var(--verde-800);border:0.5px solid var(--verde-200);border-radius:var(--r-sm);font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
+        Já permiti — tentar novamente
+      </button>
+      <button onclick="fecharPopupMic()" style="width:100%;padding:12px;background:transparent;color:var(--texto-2);border:0.5px solid var(--borda-2);border-radius:var(--r-sm);font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;">
+        Agora não
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- modal conta -->
+<div class="modal-over" id="mo-conta" onclick="fecharModais(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="mo-conta-title">Nova conta</div>
+    <div class="field"><label>Nome da conta</label><input type="text" id="mo-nome" placeholder="Ex: Nubank, Poupança..."></div>
+    <div class="field"><label>Tipo</label>
+      <select id="mo-tipo">
+        <option value="">Selecione</option>
+        <option>Conta corrente</option><option>Conta poupança</option>
+        <option>Cartão de crédito</option><option>Carteira (dinheiro)</option>
+        <option>Investimento</option><option>Outro</option>
+      </select>
+    </div>
+    <div class="field"><label>Saldo inicial (R$)</label><input type="number" id="mo-saldo" placeholder="0,00" min="0" step="0.01"></div>
+    <div class="field">
+      <label>Ícone</label>
+      <div class="icon-grid" id="mo-icons">
+        <div class="ic-opt sel" data-ic="💳" onclick="selIco(this)">💳</div>
+        <div class="ic-opt" data-ic="🏦" onclick="selIco(this)">🏦</div>
+        <div class="ic-opt" data-ic="👛" onclick="selIco(this)">👛</div>
+        <div class="ic-opt" data-ic="💰" onclick="selIco(this)">💰</div>
+        <div class="ic-opt" data-ic="📈" onclick="selIco(this)">📈</div>
+        <div class="ic-opt" data-ic="🏠" onclick="selIco(this)">🏠</div>
+        <div class="ic-opt" data-ic="🚗" onclick="selIco(this)">🚗</div>
+        <div class="ic-opt" data-ic="✈️" onclick="selIco(this)">✈️</div>
+        <div class="ic-opt" data-ic="🎓" onclick="selIco(this)">🎓</div>
+        <div class="ic-opt" data-ic="❤️" onclick="selIco(this)">❤️</div>
+        <div class="ic-opt" data-ic="⭐" onclick="selIco(this)">⭐</div>
+        <div class="ic-opt" data-ic="🎯" onclick="selIco(this)">🎯</div>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-sec" style="flex:1;" onclick="fecharModais()">Cancelar</button>
+      <button class="btn-prim g" style="flex:2;" onclick="salvarConta()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- modal meta -->
+<div class="modal-over" id="mo-meta" onclick="fecharModais(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Nova meta</div>
+    <div class="field"><label>Nome da meta</label><input type="text" id="mm-nome" placeholder="Ex: Viagem, Reserva de emergência..."></div>
+    <div class="two-col">
+      <div class="field"><label>Valor alvo (R$)</label><input type="number" id="mm-total" placeholder="10.000" min="0"></div>
+      <div class="field"><label>Já tenho (R$)</label><input type="number" id="mm-atual" placeholder="0" min="0"></div>
+    </div>
+    <div class="field"><label>Prazo</label><input type="month" id="mm-prazo"></div>
+    <div class="field">
+      <label>Ícone</label>
+      <div class="icon-grid">
+        <div class="ic-opt sel" data-ic="🏖️" onclick="selIcoMeta(this)">🏖️</div>
+        <div class="ic-opt" data-ic="🏠" onclick="selIcoMeta(this)">🏠</div>
+        <div class="ic-opt" data-ic="🚗" onclick="selIcoMeta(this)">🚗</div>
+        <div class="ic-opt" data-ic="📚" onclick="selIcoMeta(this)">📚</div>
+        <div class="ic-opt" data-ic="💍" onclick="selIcoMeta(this)">💍</div>
+        <div class="ic-opt" data-ic="🛡️" onclick="selIcoMeta(this)">🛡️</div>
+        <div class="ic-opt" data-ic="✈️" onclick="selIcoMeta(this)">✈️</div>
+        <div class="ic-opt" data-ic="🎓" onclick="selIcoMeta(this)">🎓</div>
+        <div class="ic-opt" data-ic="💻" onclick="selIcoMeta(this)">💻</div>
+        <div class="ic-opt" data-ic="🎯" onclick="selIcoMeta(this)">🎯</div>
+        <div class="ic-opt" data-ic="⭐" onclick="selIcoMeta(this)">⭐</div>
+        <div class="ic-opt" data-ic="❤️" onclick="selIcoMeta(this)">❤️</div>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-sec" style="flex:1;" onclick="fecharModais()">Cancelar</button>
+      <button class="btn-prim g" style="flex:2;" onclick="salvarMeta()">Salvar meta</button>
+    </div>
+  </div>
+</div>
+
+<!-- toast global -->
+<div class="toast" id="toast">✓ <span id="toast-msg"></span></div>
+
+<!-- ══════════════════════════════════════
+     SCRIPT
+══════════════════════════════════════ -->
+<script>
+// ── UTILITÁRIOS ──
+const fmt  = v => new Intl.NumberFormat('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}).format(v);
+const fmt0 = v => new Intl.NumberFormat('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0}).format(v);
+let toastT;
+function toast(msg, err=false) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.className = 'toast show' + (err?' err':'');
+  clearTimeout(toastT);
+  toastT = setTimeout(()=>t.className='toast', 3200);
+}
+
+// ── DADOS ──
+let contas = [
+  {id:1,nome:'Nubank',tipo:'Conta corrente',saldo:8200,icon:'💳',pub:true,cor:'#E1F5EE',titular:'ana'},
+  {id:2,nome:'Bradesco',tipo:'Conta corrente',saldo:4980,icon:'🏦',pub:true,cor:'#E6F1FB',titular:'ana'},
+  {id:3,nome:'Carteira',tipo:'Carteira (dinheiro)',saldo:3200,icon:'👛',pub:false,cor:'#FAEEDA',titular:'ana'},
+  {id:4,nome:'Inter',tipo:'Conta corrente',saldo:7100,icon:'🏦',pub:true,cor:'#E6F1FB',titular:'carlos'},
+  {id:5,nome:'C6 Bank',tipo:'Conta corrente',saldo:3200,icon:'💳',pub:true,cor:'#EEEDFE',titular:'carlos'},
+  {id:6,nome:'Poupança',tipo:'Conta poupança',saldo:2800,icon:'💰',pub:true,cor:'#EAF3DE',titular:'carlos'},
+  {id:7,nome:'Caixa',tipo:'Conta corrente',saldo:2300,icon:'🏦',pub:true,cor:'#FBEAF0',titular:'bia'},
+  {id:8,nome:'Carteira',tipo:'Carteira (dinheiro)',saldo:800,icon:'👛',pub:false,cor:'#FAEEDA',titular:'bia'},
+];
+
+let transacoes = [
+  {id:1,tipo:'s',val:234.50,desc:'Supermercado',data:'2025-05-17',cat:'Alimentação',conta:'Nubank',titular:'ana'},
+  {id:2,tipo:'e',val:6200,desc:'Salário maio — Ana',data:'2025-05-15',cat:'Salário',conta:'Nubank',titular:'ana'},
+  {id:3,tipo:'e',val:8500,desc:'Salário maio — Carlos',data:'2025-05-15',cat:'Salário',conta:'Inter',titular:'carlos'},
+  {id:4,tipo:'s',val:55.90,desc:'Netflix família',data:'2025-05-12',cat:'Lazer',conta:'Nubank',titular:'familia'},
+  {id:5,tipo:'s',val:89.90,desc:'Plano celular',data:'2025-05-10',cat:'Saúde',conta:'Bradesco',titular:'ana'},
+  {id:6,tipo:'s',val:180,desc:'Combustível',data:'2025-05-14',cat:'Transporte',conta:'Inter',titular:'carlos'},
+  {id:7,tipo:'e',val:800,desc:'Mesada — Bia',data:'2025-05-01',cat:'Salário',conta:'Caixa',titular:'bia'},
+  {id:8,tipo:'s',val:120,desc:'Material escolar',data:'2025-05-05',cat:'Educação',conta:'Caixa',titular:'bia'},
+];
+
+let metas = [
+  {id:1,nome:'Viagem Europa',icon:'✈️',total:20000,atual:8500,prazo:'dez/2025'},
+  {id:2,nome:'Reserva de emergência',icon:'🛡️',total:30000,atual:22000,prazo:'mar/2026'},
+  {id:3,nome:'Troca do carro',icon:'🚗',total:50000,atual:12000,prazo:'jun/2026'},
+];
+
+let titulares = [
+  {id:'familia',nome:'Família',sig:'',cor:'#D3D1C7',corTx:'#444441'},
+  {id:'ana',nome:'Ana',sig:'AN',cor:'#9FE1CB',corTx:'#085041'},
+  {id:'carlos',nome:'Carlos',sig:'CA',cor:'#B5D4F4',corTx:'#0C447C'},
+  {id:'bia',nome:'Bia',sig:'BI',cor:'#F4C0D1',corTx:'#72243E'},
+];
+
+let pizzaChart, lineChart;
+let dashMembro = 'familia';
+let lancTipo = 'e';
+let lancConta = null;
+let contaEditId = null;
+let icoContaSel = '💳';
+let icoMetaSel = '🏖️';
+let titularContasIdx = 1; // começa em Ana
+
+// ── NAVEGAÇÃO ──
+function ir(tela) {
+  document.querySelectorAll('.tela').forEach(t=>t.classList.remove('ativa'));
+  document.getElementById(tela).classList.add('ativa');
+  if(tela==='t-lanc') initLanc();
+  if(tela==='t-contas') renderContas();
+  if(tela==='t-metas') renderMetas();
+  if(tela==='t-invest') renderInvest();
+  if(tela==='t-perfil') renderPerfil();
+  if(tela==='t-fin') initFin();
+}
+function navIr(el, tela) {
+  document.querySelectorAll('.nav-it').forEach(b=>b.classList.remove('ativo'));
+  if(el) el.classList.add('ativo');
+  ir(tela);
+}
+
+// ══════════════════════════
+// DASHBOARD
+// ══════════════════════════
+const DASH_DATA = {
+  familia:{label:'Saldo total da família',saldo:28650,ent:19800,sai:9430,qnt:8,pizzaTitle:'Distribuição — família',
+    slices:[
+      {nome:'Ana · Nubank',val:8200,cor:'#1D9E75'},{nome:'Ana · Bradesco',val:4980,cor:'#5DCAA5'},
+      {nome:'Carlos · Inter',val:7100,cor:'#378ADD'},{nome:'Carlos · C6',val:3200,cor:'#85B7EB'},
+      {nome:'Bia · Caixa',val:2300,cor:'#D4537E'},{nome:'Outros',val:2870,cor:'#B4B2A9'},
+    ],
+    lineE:[5,15,15,15,30,30,42,56,70,84,84,94,100],
+    lineS:[3,9,15,15,21,26,30,35,38,44,46,48,50],
+  },
+  ana:{label:'Saldo de Ana',saldo:16380,ent:8200,sai:3450,qnt:3,pizzaTitle:'Distribuição — Ana',
+    slices:[{nome:'Nubank',val:8200,cor:'#1D9E75'},{nome:'Bradesco',val:4980,cor:'#5DCAA5'},{nome:'Carteira',val:3200,cor:'#EF9F27'}],
+    lineE:[0,8,8,8,22,22,34,46,58,72,72,82,88],lineS:[2,7,11,11,17,22,25,29,31,37,39,41,43],
+  },
+  carlos:{label:'Saldo de Carlos',saldo:13100,ent:9800,sai:4200,qnt:3,pizzaTitle:'Distribuição — Carlos',
+    slices:[{nome:'Inter',val:7100,cor:'#378ADD'},{nome:'C6 Bank',val:3200,cor:'#85B7EB'},{nome:'Poupança',val:2800,cor:'#5DCAA5'}],
+    lineE:[0,0,0,0,16,16,30,52,66,86,86,86,98],lineS:[3,9,13,13,18,23,27,31,34,39,41,43,44],
+  },
+  bia:{label:'Saldo de Bia',saldo:3100,ent:1800,sai:1780,qnt:2,pizzaTitle:'Distribuição — Bia',
+    slices:[{nome:'Caixa',val:2300,cor:'#D4537E'},{nome:'Carteira',val:800,cor:'#EF9F27'}],
+    lineE:[0,8,8,8,8,8,8,8,8,18,18,18,18],lineS:[2,5,8,10,13,15,17,19,21,23,25,26,27],
+  },
+};
+
+function dashFiltrar(el) {
+  document.querySelectorAll('#d-members .m-chip').forEach(b=>b.classList.remove('ativo'));
+  el.classList.add('ativo');
+  dashMembro = el.dataset.m;
+  renderDash();
+}
+
+function renderDash() {
+  const d = DASH_DATA[dashMembro];
+  document.getElementById('d-hero-label').textContent = d.label;
+  document.getElementById('d-hero-val').textContent = 'R$ '+fmt0(d.saldo);
+  document.getElementById('d-ent').textContent = 'R$ '+fmt0(d.ent);
+  document.getElementById('d-sai').textContent = 'R$ '+fmt0(d.sai);
+  document.getElementById('d-qnt').textContent = d.qnt;
+  document.getElementById('d-pizza-title').textContent = d.pizzaTitle;
+  document.getElementById('pc-label').textContent = 'total';
+  document.getElementById('pc-val').textContent = 'R$ '+fmt0(d.saldo);
+  renderPizza(d.slices, d.saldo);
+  renderLine(d.lineE, d.lineS);
+  renderDashTx();
+}
+
+function renderPizza(slices, total) {
+  const labels = slices.map(s=>s.nome);
+  const data   = slices.map(s=>s.val);
+  const colors = slices.map(s=>s.cor);
+  const leg = document.getElementById('pizza-leg');
+  leg.innerHTML = slices.map(s=>`
+    <div class="p-leg" onclick="pizzaFoco('${s.nome}',${s.val},${total})">
+      <div class="p-dot" style="background:${s.cor}"></div>
+      <div class="p-nome">${s.nome}</div>
+      <div class="p-val">R$ ${fmt0(s.val)}</div>
+      <div class="p-pct">${Math.round(s.val/total*100)}%</div>
+    </div>`).join('');
+
+  if(pizzaChart) pizzaChart.destroy();
+  const canvas = document.getElementById('pizzaChart');
+  canvas.width = 200; canvas.height = 200;
+  const ctx = canvas.getContext('2d');
+  pizzaChart = new Chart(ctx,{
+    type:'doughnut',
+    data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:0,hoverOffset:5}]},
+    options:{
+      cutout:'60%',responsive:false,
+      plugins:{legend:{display:false},tooltip:{
+        callbacks:{label:ctx=>`R$ ${fmt0(ctx.parsed)}`}
+      }},
+      onClick:(_,els)=>{
+        if(!els.length)return;
+        const i=els[0].index;
+        pizzaFoco(labels[i],data[i],total);
+      }
+    }
+  });
+}
+
+function pizzaFoco(nome,val,total) {
+  document.getElementById('pc-label').textContent = nome.split('·').pop().trim()||nome;
+  document.getElementById('pc-val').textContent = 'R$ '+fmt0(val);
+}
+
+function renderLine(lineE, lineS) {
+  const labels = ['01','03','05','07','09','11','13','15','17','19','21','23','hoje'];
+  if(lineChart) lineChart.destroy();
+  const ctx = document.getElementById('lineChart').getContext('2d');
+  lineChart = new Chart(ctx,{
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {label:'Entradas',data:lineE,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,0.08)',fill:true,tension:0.35,borderWidth:2,pointRadius:0,pointHoverRadius:4},
+        {label:'Saídas',data:lineS,borderColor:'#D85A30',backgroundColor:'transparent',fill:false,tension:0.35,borderWidth:1.5,borderDash:[4,3],pointRadius:0,pointHoverRadius:4},
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:10},color:'#ADADAA',maxRotation:0}},
+        y:{display:false}
+      }
+    }
+  });
+}
+
+function renderDashTx() {
+  const txs = transacoes.filter(t=> dashMembro==='familia'||t.titular===dashMembro||t.titular==='familia').slice(0,4);
+  renderTxList('d-txs', txs);
+}
+
+function renderTxList(id, txs) {
+  const el = document.getElementById(id);
+  if(!txs.length){ el.innerHTML='<div class="empty"><div class="empty-ico">📋</div><p>Nenhum lançamento ainda.</p></div>'; return; }
+  el.innerHTML = txs.map((t,i)=>`
+    <div class="tx" style="${i===txs.length-1?'border-bottom:none':''}">
+      <div class="tx-ico" style="background:${t.tipo==='e'?'#E1F5EE':'#FAECE7'}">
+        ${t.tipo==='e'?'↓':'↑'}
+      </div>
+      <div class="tx-info">
+        <div class="tx-nome">${t.desc}</div>
+        <div class="tx-meta">${t.conta} · ${t.data.slice(8)}/${t.data.slice(5,7)} · ${t.cat}</div>
+      </div>
+      <div class="tx-val ${t.tipo}">${t.tipo==='e'?'+':'−'} R$ ${fmt(t.val)}</div>
+    </div>`).join('');
+}
+
+// ══════════════════════════
+// CONTAS
+// ══════════════════════════
+let titContasAtual = 'ana';
+const titList = ['ana','carlos','bia'];
+const titInfo = {
+  ana:   {nome:'Ana',sig:'AN',cor:'#9FE1CB',corTx:'#085041',ent:8200,sai:3450},
+  carlos:{nome:'Carlos',sig:'CA',cor:'#B5D4F4',corTx:'#0C447C',ent:9800,sai:4200},
+  bia:   {nome:'Bia',sig:'BI',cor:'#F4C0D1',corTx:'#72243E',ent:1800,sai:1780},
+};
+
+function ciclaTitular() {
+  const idx = titList.indexOf(titContasAtual);
+  titContasAtual = titList[(idx+1)%titList.length];
+  const t = titInfo[titContasAtual];
+  document.getElementById('av-sig').textContent = t.sig;
+  document.getElementById('av-sig').style.background = t.cor;
+  document.getElementById('av-sig').style.color = t.corTx;
+  document.getElementById('av-nome').textContent = t.nome;
+  renderContas();
+}
+
+function renderContas() {
+  const t = titInfo[titContasAtual];
+  const cs = contas.filter(c=>c.titular===titContasAtual);
+  const saldo = cs.reduce((s,c)=>s+c.saldo,0);
+  document.getElementById('c-label').textContent = `Saldo total de ${t.nome}`;
+  document.getElementById('c-saldo').textContent = 'R$ '+fmt0(saldo);
+  document.getElementById('c-ent').textContent = 'R$ '+fmt0(t.ent);
+  document.getElementById('c-sai').textContent = 'R$ '+fmt0(t.sai);
+  document.getElementById('c-qnt').textContent = cs.length;
+
+  const lista = document.getElementById('c-lista');
+  if(!cs.length){ lista.innerHTML='<div class="empty"><div class="empty-ico">💳</div><p>Nenhuma conta. Crie uma acima.</p></div>'; return; }
+  lista.innerHTML = cs.map(c=>`
+    <div class="conta-card" id="cc-${c.id}">
+      <div class="conta-head" onclick="toggleAcoes(${c.id})">
+        <div class="conta-ico" style="background:${c.cor}">${c.icon}</div>
+        <div style="flex:1;">
+          <div class="conta-nome-txt">${c.nome}</div>
+          <div class="conta-tipo-txt">${c.tipo}</div>
+        </div>
+        <div>
+          <div class="conta-saldo-txt">R$ ${fmt(c.saldo)}</div>
+          <div class="conta-visib ${c.pub?'pub':'priv'}">${c.pub?'👁 Visível':'🔒 Privada'}</div>
+        </div>
+      </div>
+      <div class="conta-acoes" id="ca-${c.id}">
+        <div class="ag">
+          <button class="ab prim" onclick="editarConta(${c.id})">✏️ Renomear</button>
+          <button class="ab" onclick="verLanc(${c.id})">📋 Lançamentos</button>
+        </div>
+        <div class="visib-row">
+          <span class="visib-lbl">${c.pub?'Pública':'Privada'}</span>
+          <button class="tgl ${c.pub?'on':''}" onclick="togVisib(${c.id})" aria-label="Visibilidade"><div class="tgl-k"></div></button>
+        </div>
+        <div class="ag"><button class="ab danger" onclick="excluirConta(${c.id})">🗑 Excluir</button></div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleAcoes(id) {
+  const el = document.getElementById(`ca-${id}`);
+  const open = el.classList.contains('open');
+  document.querySelectorAll('.conta-acoes').forEach(a=>a.classList.remove('open'));
+  if(!open) el.classList.add('open');
+}
+
+function togVisib(id) {
+  const c = contas.find(c=>c.id===id);
+  c.pub = !c.pub;
+  renderContas();
+  toast(`${c.nome} agora é ${c.pub?'pública':'privada'}`);
+  setTimeout(()=>{ const el=document.getElementById(`ca-${id}`); if(el)el.classList.add('open'); },50);
+}
+
+function excluirConta(id) {
+  const c = contas.find(c=>c.id===id);
+  if(!confirm(`Excluir "${c.nome}"? Os lançamentos serão perdidos.`)) return;
+  contas = contas.filter(c=>c.id!==id);
+  renderContas();
+  toast(`Conta "${c.nome}" excluída`);
+}
+
+function verLanc(id) {
+  const c = contas.find(c=>c.id===id);
+  toast(`Abrindo lançamentos de ${c.nome}…`);
+  navIr(document.querySelector('[data-tela="t-dash"]'),'t-dash');
+}
+
+function abrirModalConta(editId=null) {
+  contaEditId = editId;
+  const mo = document.getElementById('mo-conta');
+  document.getElementById('mo-conta-title').textContent = editId?'Editar conta':'Nova conta';
+  if(editId) {
+    const c = contas.find(c=>c.id===editId);
+    document.getElementById('mo-nome').value = c.nome;
+    document.getElementById('mo-tipo').value = c.tipo;
+    document.getElementById('mo-saldo').value = c.saldo;
+    icoContaSel = c.icon;
+    document.querySelectorAll('#mo-icons .ic-opt').forEach(o=>o.classList.toggle('sel',o.dataset.ic===c.icon));
+  } else {
+    document.getElementById('mo-nome').value='';
+    document.getElementById('mo-tipo').value='';
+    document.getElementById('mo-saldo').value='';
+    icoContaSel='💳';
+    document.querySelectorAll('#mo-icons .ic-opt').forEach((o,i)=>o.classList.toggle('sel',i===0));
+  }
+  mo.classList.add('open');
+}
+
+function editarConta(id) { abrirModalConta(id); }
+
+const CORES_CONTA = ['#E1F5EE','#E6F1FB','#FAEEDA','#FAECE7','#FBEAF0','#EAF3DE','#EEEDFE'];
+
+function salvarConta() {
+  const nome = document.getElementById('mo-nome').value.trim();
+  const tipo = document.getElementById('mo-tipo').value;
+  const saldo= parseFloat(document.getElementById('mo-saldo').value)||0;
+  if(!nome){ toast('Digite um nome para a conta.', true); return; }
+  if(contaEditId) {
+    const c = contas.find(c=>c.id===contaEditId);
+    c.nome=nome; c.tipo=tipo||c.tipo; c.saldo=saldo; c.icon=icoContaSel;
+    toast(`Conta "${nome}" atualizada`);
+  } else {
+    contas.push({id:Date.now(),nome,tipo:tipo||'Outro',saldo,icon:icoContaSel,pub:true,cor:CORES_CONTA[contas.length%CORES_CONTA.length],titular:titContasAtual});
+    toast(`Conta "${nome}" criada!`);
+  }
+  fecharModais();
+  renderContas();
+}
+
+function selIco(el) {
+  document.querySelectorAll('#mo-icons .ic-opt').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel'); icoContaSel=el.dataset.ic;
+}
+
+// ══════════════════════════
+// LANÇAMENTO
+// ══════════════════════════
+function initLanc() {
+  lancTipo='e';
+  document.getElementById('tb-e').className='tipo-btn e ativo';
+  document.getElementById('tb-s').className='tipo-btn s';
+  document.getElementById('l-btn').className='btn-prim g';
+  document.getElementById('l-btn').textContent='+ Registrar entrada';
+  document.getElementById('l-data').valueAsDate=new Date();
+  document.getElementById('l-val').value='';
+  document.getElementById('l-desc').value='';
+  document.getElementById('l-cat').value='';
+  document.getElementById('l-rec').classList.remove('on');
+  document.getElementById('l-toast-inline').style.display='none';
+  renderLancContas();
+  renderTxList('l-txs', transacoes.slice(0,5));
+  document.getElementById('l-list-title').textContent='Últimos lançamentos';
+}
+
+function setTipo(t) {
+  lancTipo=t;
+  document.getElementById('tb-e').className='tipo-btn e'+(t==='e'?' ativo':'');
+  document.getElementById('tb-s').className='tipo-btn s'+(t==='s'?' ativo':'');
+  const btn=document.getElementById('l-btn');
+  btn.className='btn-prim '+(t==='e'?'g':'r');
+  btn.textContent=(t==='e'?'+ Registrar entrada':'+ Registrar saída');
+}
+
+function renderLancContas() {
+  const cs = contas.filter(c=>c.titular==='ana');
+  lancConta = cs[0]?.id||null;
+  document.getElementById('l-contas').innerHTML = cs.map((c,i)=>`
+    <div class="cc ${i===0?'sel':''}" data-cid="${c.id}" onclick="selConta(this,${c.id})">
+      <div class="cc-ico">${c.icon}</div>
+      <div class="cc-nome">${c.nome}</div>
+      <div class="cc-val">R$ ${fmt0(c.saldo)}</div>
+    </div>`).join('');
+}
+
+function selConta(el,id) {
+  document.querySelectorAll('#l-contas .cc').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel'); lancConta=id;
+}
+
+function lancar() {
+  const val  = parseFloat(document.getElementById('l-val').value);
+  const desc = document.getElementById('l-desc').value.trim();
+  const data = document.getElementById('l-data').value;
+  const cat  = document.getElementById('l-cat').value;
+  if(!val||val<=0||!desc){ toast('Preencha ao menos o valor e a descrição.', true); return; }
+  const c = contas.find(c=>c.id===lancConta);
+  const contaNome = c?c.nome:'Sem conta';
+  const tx = {id:Date.now(),tipo:lancTipo,val,desc,data:data||new Date().toISOString().slice(0,10),cat:cat||'Outro',conta:contaNome,titular:'ana'};
+  transacoes.unshift(tx);
+  if(c){ c.saldo += lancTipo==='e'?val:-val; }
+  toast(`${lancTipo==='e'?'Entrada':'Saída'} de R$ ${fmt(val)} registrada!`);
+  document.getElementById('l-val').value='';
+  document.getElementById('l-desc').value='';
+  document.getElementById('l-cat').value='';
+  renderTxList('l-txs', transacoes.slice(0,5));
+  renderDash();
+}
+
+// ══════════════════════════
+// METAS
+// ══════════════════════════
+function renderMetas() {
+  const lista=document.getElementById('m-lista');
+  if(!metas.length){ lista.innerHTML='<div class="empty"><div class="empty-ico">🎯</div><p>Nenhuma meta ainda.</p></div>'; return; }
+  lista.innerHTML = metas.map(m=>{
+    const pct = Math.min(Math.round(m.atual/m.total*100),100);
+    return `<div class="meta-card">
+      <div class="meta-head">
+        <div class="meta-ico">${m.icon}</div>
+        <div style="flex:1;"><div class="meta-nome">${m.nome}</div><div class="meta-prazo">Prazo: ${m.prazo}</div></div>
+        <div style="font-size:14px;font-weight:500;color:var(--verde-600);">${pct}%</div>
+      </div>
+      <div class="meta-prog-bar"><div class="meta-prog-fill" style="width:${pct}%"></div></div>
+      <div class="meta-vals">
+        <div class="meta-atual">R$ ${fmt0(m.atual)} acumulados</div>
+        <div class="meta-total">meta: R$ ${fmt0(m.total)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function abrirModalMeta() {
+  document.getElementById('mm-nome').value='';
+  document.getElementById('mm-total').value='';
+  document.getElementById('mm-atual').value='';
+  document.getElementById('mm-prazo').value='';
+  icoMetaSel='🏖️';
+  document.querySelectorAll('#mo-meta .ic-opt').forEach((o,i)=>o.classList.toggle('sel',i===0));
+  document.getElementById('mo-meta').classList.add('open');
+}
+
+function salvarMeta() {
+  const nome=document.getElementById('mm-nome').value.trim();
+  const total=parseFloat(document.getElementById('mm-total').value)||0;
+  const atual=parseFloat(document.getElementById('mm-atual').value)||0;
+  const prazo=document.getElementById('mm-prazo').value;
+  if(!nome||!total){ toast('Preencha nome e valor alvo.', true); return; }
+  const [a,m]=prazo?prazo.split('-'):['',''];
+  const meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const prazoFmt = prazo?`${meses[parseInt(m)-1]}/${a.slice(2)}`:'sem prazo';
+  metas.push({id:Date.now(),nome,icon:icoMetaSel,total,atual,prazo:prazoFmt});
+  fecharModais(); renderMetas(); toast(`Meta "${nome}" criada!`);
+}
+
+function selIcoMeta(el) {
+  document.querySelectorAll('#mo-meta .ic-opt').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel'); icoMetaSel=el.dataset.ic;
+}
+
+// ══════════════════════════
+// INVESTIMENTOS
+// ══════════════════════════
+const INVEST = [
+  {icon:'📊',nome:'Tesouro Selic 2027',desc:'Liquidez diária · Risco baixo',pct:'12,35',tipo:'a.a.',badge:'safe',badgeTxt:'Conservador'},
+  {icon:'🏦',nome:'CDB 110% CDI',desc:'24 meses · Garantido FGC',pct:'13,10',tipo:'a.a.',badge:'hot',badgeTxt:'Mais rendimento'},
+  {icon:'📈',nome:'LCI isento de IR',desc:'12 meses · Renda fixa',pct:'11,80',tipo:'a.a.',badge:'new',badgeTxt:'Novo'},
+];
+const INVEST2 = [
+  {icon:'🏢',nome:'FII HGLG11',desc:'Galpões logísticos · REIT BR',pct:'8,4',tipo:'div/ano',badge:'hot',badgeTxt:'Alta liquidez'},
+  {icon:'💹',nome:'ETF BOVA11',desc:'Ibovespa · Diversificado',pct:'15,2',tipo:'12m',badge:'new',badgeTxt:'Longo prazo'},
+];
+
+function renderInvest() {
+  document.getElementById('inv-lista').innerHTML = INVEST.map(i=>`
+    <div class="inv-card">
+      <div class="inv-ico">${i.icon}</div>
+      <div class="inv-info">
+        <div class="inv-nome">${i.nome}</div>
+        <div class="inv-desc">${i.desc}</div>
+        <span class="badge ${i.badge}">${i.badgeTxt}</span>
+      </div>
+      <div class="inv-taxa">
+        <div class="inv-pct">${i.pct}%</div>
+        <div class="inv-tipo">${i.tipo}</div>
+      </div>
+    </div>`).join('');
+  document.getElementById('inv-lista2').innerHTML = INVEST2.map(i=>`
+    <div class="inv-card">
+      <div class="inv-ico">${i.icon}</div>
+      <div class="inv-info">
+        <div class="inv-nome">${i.nome}</div>
+        <div class="inv-desc">${i.desc}</div>
+        <span class="badge ${i.badge}">${i.badgeTxt}</span>
+      </div>
+      <div class="inv-taxa">
+        <div class="inv-pct">${i.pct}%</div>
+        <div class="inv-tipo">${i.tipo}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ══════════════════════════
+// PERFIL
+// ══════════════════════════
+function renderPerfil() {
+  const row=(ico,txt,sub)=>`<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:0.5px solid var(--borda);">
+    <span style="font-size:18px;">${ico}</span>
+    <div style="flex:1;"><div style="font-size:13px;">${txt}</div>${sub?`<div style="font-size:11px;color:var(--texto-2);">${sub}</div>`:''}</div>
+    <span style="color:var(--texto-3);font-size:16px;">›</span></div>`;
+
+  document.getElementById('p-membros').innerHTML =
+    row('👩','Ana Silva','Titular principal')+
+    row('👨','Carlos Silva','Membro')+
+    row('👧','Bia Silva','Membro')+
+    `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;" onclick="toast('Convite enviado!')">
+      <span style="font-size:18px;">➕</span>
+      <div style="flex:1;font-size:13px;color:var(--verde);font-weight:500;">Convidar membro</div></div>`;
+
+  document.getElementById('p-configs').innerHTML =
+    row('🔔','Notificações','WhatsApp e push')+
+    row('🔒','Privacidade e segurança','')+
+    row('🌙','Tema','Claro')+
+    row('📱','Vincular WhatsApp','Para alertas do Fin')+
+    row('❓','Ajuda e suporte','');
+}
+
+// ══════════════════════════
+// ASSISTENTE FIN — IA REAL
+// ══════════════════════════
+const FIN_SUGS = [
+  'Quanto gastei esse mês?',
+  'Qual minha maior despesa?',
+  'Me sugira um investimento',
+  'Como estão minhas metas?',
+  'Analise meu saldo atual',
+];
+
+let finIniciado = false;
+let finHistorico = [];
+let micAtivo = false;
+let recognition = null;
+
+function finContexto() {
+  const totalSaidas   = transacoes.filter(t=>t.tipo==='s').reduce((s,t)=>s+t.val,0);
+  const totalEntradas = transacoes.filter(t=>t.tipo==='e').reduce((s,t)=>s+t.val,0);
+  const saldoTotal    = contas.reduce((s,c)=>s+c.saldo,0);
+  const contasResumo  = contas.map(c=>`${c.nome} (${c.titular}): R$ ${fmt(c.saldo)}`).join('\n');
+  const txResumo      = transacoes.slice(0,10).map(t=>`${t.tipo==='e'?'Entrada':'Saída'}: R$ ${fmt(t.val)} — ${t.desc} (${t.conta}, ${t.data}, ${t.cat})`).join('\n');
+  const metasResumo   = metas.map(m=>`${m.nome}: R$ ${fmt0(m.atual)} de R$ ${fmt0(m.total)} — prazo ${m.prazo}`).join('\n');
+  return `Você é o Fin, assistente financeiro do app FinFamília. Responda sempre em português brasileiro, de forma direta e amigável. Use os dados abaixo para responder. Nunca invente números.
+
+SALDO TOTAL: R$ ${fmt(saldoTotal)}
+ENTRADAS MÊS: R$ ${fmt(totalEntradas)}
+SAÍDAS MÊS: R$ ${fmt(totalSaidas)}
+
+CONTAS:\n${contasResumo}
+
+TRANSAÇÕES RECENTES:\n${txResumo}
+
+METAS:\n${metasResumo}
+
+Seja objetivo. Use no máximo 3 parágrafos curtos. Pode usar emojis com moderação.`;
+}
+
+function initFin() {
+  if(finIniciado) return;
+  finIniciado = true;
+  finHistorico = [];
+  finMsgAdd('Fin', 'Olá! Sou o Fin 👋 Seu assistente financeiro com IA. Pergunte sobre seus gastos, metas ou peça sugestões de investimento. Pode digitar ou usar o microfone.', false);
+  const sugs = document.getElementById('fin-sugs');
+  sugs.innerHTML = FIN_SUGS.map(s =>
+    `<button onclick="finSugClick('${s}')"
+      style="background:var(--branco);border:0.5px solid var(--borda-2);border-radius:20px;padding:6px 14px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;color:var(--texto-2);"
+    >${s}</button>`
+  ).join('');
+}
+
+function finMsgAdd(quem, txt, isUser) {
+  const chat = document.getElementById('fin-chat');
+  const wrap = document.createElement('div');
+  wrap.style.cssText = `display:flex;flex-direction:column;align-items:${isUser?'flex-end':'flex-start'};gap:3px;`;
+  wrap.innerHTML = `
+    <div style="font-size:10px;color:var(--texto-3);padding:0 4px;">${quem}</div>
+    <div style="max-width:82%;background:${isUser?'var(--verde)':'var(--branco)'};color:${isUser?'white':'var(--texto)'};border:${isUser?'none':'0.5px solid var(--borda)'};border-radius:${isUser?'16px 16px 4px 16px':'16px 16px 16px 4px'};padding:10px 14px;font-size:13px;line-height:1.6;">${txt}</div>`;
+  chat.appendChild(wrap);
+  const area = document.getElementById('fin-chat-area');
+  setTimeout(()=>{ area.scrollTop = area.scrollHeight; }, 50);
+  return wrap;
+}
+
+function finSugClick(txt) {
+  document.getElementById('fin-input').value = txt;
+  finEnviar();
+}
+
+async function finEnviar() {
+  const inp = document.getElementById('fin-input');
+  const txt = inp.value.trim();
+  if(!txt) return;
+
+  inp.value = '';
+  finMsgAdd('Você', txt, true);
+  finHistorico.push({ role:'user', content:txt });
+
+  // bolha de digitando
+  const loadWrap = finMsgAdd('Fin', '<span style="opacity:0.45;font-style:italic;">digitando...</span>', false);
+
+  inp.disabled = true;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 800,
+        system: finContexto(),
+        messages: finHistorico,
+      })
+    });
+    const data = await resp.json();
+    const resposta = data?.content?.[0]?.text || 'Não consegui processar. Tente novamente.';
+    loadWrap.remove();
+    finMsgAdd('Fin', resposta.replace(/\n/g,'<br>'), false);
+    finHistorico.push({ role:'assistant', content:resposta });
+    if(finHistorico.length > 20) finHistorico = finHistorico.slice(-20);
+  } catch(e) {
+    loadWrap.remove();
+    finMsgAdd('Fin', '⚠️ Erro de conexão. Verifique sua internet e tente novamente.', false);
+  }
+
+  inp.disabled = false;
+  inp.focus();
+}
+
+// ── MICROFONE ──
+let micPermissao = 'desconhecido'; // 'desconhecido' | 'permitido' | 'negado'
+
+function abrirPopupMic() {
+  const mo = document.getElementById('mo-mic');
+  mo.style.display = 'flex';
+}
+function fecharPopupMic() {
+  const mo = document.getElementById('mo-mic');
+  mo.style.display = 'none';
+}
+
+function micAbrirConfiguracoes() {
+  // Chrome Android / desktop — abre página de configurações do site atual
+  const url = 'chrome://settings/content/microphone';
+  // tenta abrir as configurações nativas; em mobile abre as do sistema
+  try {
+    // Android Chrome
+    if(/Android/i.test(navigator.userAgent)) {
+      window.open('intent://settings#Intent;scheme=android-app;package=com.android.settings;end', '_blank');
+    }
+    // iOS Safari
+    else if(/iPhone|iPad/i.test(navigator.userAgent)) {
+      window.open('app-settings:', '_blank');
+    }
+    // Desktop — instrui o usuário pois chrome:// não abre via JS
+    else {
+      fecharPopupMic();
+      toast('No Chrome: barra de endereço → 🔒 → Permissões do site → Microfone → Permitir', false);
+      return;
+    }
+  } catch(e) {}
+  fecharPopupMic();
+}
+
+function micTentarNovamente() {
+  fecharPopupMic();
+  setTimeout(() => iniciarReconhecimento(), 300);
+}
+
+async function micPermitir() {
+  fecharPopupMic();
+  try {
+    // isso dispara o popup NATIVO do navegador pedindo permissão
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    // permissão concedida — para o stream e inicia reconhecimento
+    stream.getTracks().forEach(t => t.stop());
+    micPermissao = 'permitido';
+    toast('Microfone liberado! Pode falar.');
+    setTimeout(() => iniciarReconhecimento(), 400);
+  } catch(err) {
+    micPermissao = 'negado';
+    if(err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+      toast('Permissão negada. Vá em Configurações do navegador → Privacidade → Microfone e permita este site.', true);
+    } else {
+      toast('Não foi possível acessar o microfone: ' + err.message, true);
+    }
+  }
+}
+
+function finToggleMic() {
+  const SRClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SRClass) {
+    toast('Reconhecimento de voz não disponível. Use o Chrome ou Safari.', true);
+    return;
+  }
+  if(micAtivo && recognition) {
+    recognition.stop();
+    return;
+  }
+  // tenta iniciar direto — se não tiver permissão, o onerror captura e mostra popup
+  iniciarReconhecimento();
+}
+
+function iniciarReconhecimento() {
+  const SRClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const btn = document.getElementById('fin-mic-btn');
+  const svg = document.getElementById('fin-mic-svg');
+  const inp = document.getElementById('fin-input');
+
+  recognition = new SRClass();
+  recognition.lang            = 'pt-BR';
+  recognition.interimResults  = true;
+  recognition.maxAlternatives = 1;
+  recognition.continuous      = false;
+
+  recognition.onstart = () => {
+    micAtivo = true;
+    btn.style.background   = '#FAECE7';
+    btn.style.borderColor  = '#F0997B';
+    svg.setAttribute('stroke', '#D85A30');
+    inp.placeholder = '🎙 Ouvindo...';
+    inp.value = '';
+  };
+
+  recognition.onresult = (e) => {
+    const t = Array.from(e.results).map(r=>r[0].transcript).join('');
+    inp.value = t;
+    if(e.results[e.results.length-1].isFinal) recognition.stop();
+  };
+
+  recognition.onend = () => {
+    micAtivo = false;
+    btn.style.background  = '';
+    btn.style.borderColor = '';
+    svg.setAttribute('stroke', '#6B6B68');
+    inp.placeholder = 'Pergunte algo...';
+    if(inp.value.trim()) setTimeout(()=>finEnviar(), 250);
+  };
+
+  recognition.onerror = (e) => {
+    micAtivo = false;
+    btn.style.background  = '';
+    btn.style.borderColor = '';
+    svg.setAttribute('stroke', '#6B6B68');
+    inp.placeholder = 'Pergunte algo...';
+    if(e.error === 'not-allowed') {
+      // sem permissão — mostra nosso popup explicativo
+      abrirPopupMic();
+    } else if(e.error === 'no-speech') {
+      toast('Nenhuma fala detectada. Tente novamente.', true);
+    } else if(e.error === 'network') {
+      toast('Erro de rede no reconhecimento de voz.', true);
+    } else {
+      toast('Erro: ' + e.error, true);
+    }
+  };
+
+  recognition.start();
+}
+
+// ── MODAIS ──
+function fecharModais(e) {
+  if(e && e.target!==e.currentTarget) return;
+  document.querySelectorAll('.modal-over').forEach(m=>m.classList.remove('open'));
+}
+
+// ── INIT ──
+renderDash();
+renderContas();
+renderMetas();
+renderInvest();
+</script>
+</body>
+</html>
