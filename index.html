@@ -503,6 +503,34 @@
 <body>
 
 <!-- ══════════════════════════════════════
+     TELA 0 — CONFIGURAÇÃO (primeira vez)
+══════════════════════════════════════ -->
+<div id="t-setup" style="display:none;position:fixed;inset:0;background:var(--cinza-bg);z-index:999;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;">
+  <div style="width:72px;height:72px;border-radius:20px;background:var(--verde);display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+    <svg width="36" height="36" viewBox="0 0 16 16" fill="none"><path d="M8 2L13 5V11L8 14L3 11V5Z" fill="white" opacity="0.9"/></svg>
+  </div>
+  <div style="font-size:22px;font-weight:500;margin-bottom:8px;text-align:center;">Bem-vindo ao FinFamília</div>
+  <div style="font-size:14px;color:var(--texto-2);text-align:center;line-height:1.6;margin-bottom:32px;">Para usar o assistente Fin com IA, insira sua chave da API Anthropic. Ela fica salva apenas neste dispositivo.</div>
+
+  <div style="width:100%;max-width:380px;display:flex;flex-direction:column;gap:12px;">
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <label style="font-size:12px;font-weight:500;color:var(--texto-2);">Chave da API Anthropic</label>
+      <input type="password" id="setup-key" placeholder="sk-ant-..."
+        style="width:100%;padding:12px 14px;border:0.5px solid var(--borda-2);border-radius:var(--r-sm);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;background:var(--branco);">
+      <div style="font-size:11px;color:var(--texto-3);">Obtenha sua chave em console.anthropic.com → API Keys</div>
+    </div>
+
+    <button onclick="salvarChave()" style="width:100%;padding:14px;background:var(--verde);color:white;border:none;border-radius:var(--r-sm);font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px;">
+      Entrar no FinFamília
+    </button>
+
+    <button onclick="entrarSemChave()" style="width:100%;padding:12px;background:transparent;color:var(--texto-2);border:0.5px solid var(--borda-2);border-radius:var(--r-sm);font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;">
+      Entrar sem IA (configurar depois)
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
      TELA 1 — DASHBOARD
 ══════════════════════════════════════ -->
 <div class="tela ativa" id="t-dash">
@@ -1527,6 +1555,7 @@ function renderPerfil() {
     row('🔒','Privacidade e segurança','')+
     row('🌙','Tema','Claro')+
     row('📱','Vincular WhatsApp','Para alertas do Fin')+
+    row('🤖','Chave da API (Fin)', localStorage.getItem('ff_apikey') ? 'Configurada ✓' : 'Não configurada')+
     row('❓','Ajuda e suporte','');
 }
 
@@ -1616,7 +1645,12 @@ async function finEnviar() {
   try {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type':'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': getApiKey(),
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 800,
@@ -1776,11 +1810,44 @@ function fecharModais(e) {
   document.querySelectorAll('.modal-over').forEach(m=>m.classList.remove('open'));
 }
 
+// ══════════════════════════
+// CHAVE API — SETUP
+// ══════════════════════════
+function getApiKey() {
+  return localStorage.getItem('ff_apikey') || '';
+}
+
+function salvarChave() {
+  const key = document.getElementById('setup-key').value.trim();
+  if(!key || !key.startsWith('sk-ant-')) {
+    alert('Chave inválida. Deve começar com sk-ant-');
+    return;
+  }
+  localStorage.setItem('ff_apikey', key);
+  fecharSetup();
+}
+
+function entrarSemChave() {
+  fecharSetup();
+}
+
+function fecharSetup() {
+  document.getElementById('t-setup').style.display = 'none';
+}
+
+function verificarSetup() {
+  const key = getApiKey();
+  if(!key) {
+    document.getElementById('t-setup').style.display = 'flex';
+  }
+}
+
 // ── INIT ──
 renderDash();
 renderContas();
 renderMetas();
 renderInvest();
+verificarSetup();
 </script>
   <!-- PWA Service Worker -->
   <script>
