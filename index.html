@@ -577,7 +577,7 @@
       FinFamília
     </div>
     <div style="display:flex;gap:8px;margin-left:auto;">
-      <button class="btn-icon" onclick="ir('t-invest')" title="Sugestões Fin">
+      <button class="btn-icon" onclick="ir('t-invest2')" title="Sugestões Fin">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
       </button>
       <button class="btn-icon" onclick="ir('t-perfil')" title="Perfil">
@@ -588,23 +588,7 @@
 
   <div class="scroll-body">
     <!-- filtro membros -->
-    <div class="members" id="d-members">
-      <button class="m-chip ativo" data-m="familia" onclick="dashFiltrar(this)">
-        <div class="m-av" style="background:var(--cinza-200);color:var(--cinza-700)">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-        </div>
-        <span>Família</span>
-      </button>
-      <button class="m-chip" data-m="ana" onclick="dashFiltrar(this)">
-        <div class="m-av" style="background:#9FE1CB;color:#085041">AN</div><span>Ana</span>
-      </button>
-      <button class="m-chip" data-m="carlos" onclick="dashFiltrar(this)">
-        <div class="m-av" style="background:#B5D4F4;color:#0C447C">CA</div><span>Carlos</span>
-      </button>
-      <button class="m-chip" data-m="bia" onclick="dashFiltrar(this)">
-        <div class="m-av" style="background:#F4C0D1;color:#72243E">BI</div><span>Bia</span>
-      </button>
-    </div>
+    <div class="members" id="d-members"></div>
 
     <!-- hero -->
     <div class="hero">
@@ -657,7 +641,7 @@
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div class="card-title" style="margin:0" id="d-tx-title">Últimas transações</div>
-        <button style="font-size:12px;color:var(--verde);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;" onclick="ir('t-lanc')">Ver todas</button>
+        <button style="font-size:12px;color:var(--verde);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;" onclick="verTodasTx()">Ver todas</button>
       </div>
       <div class="tx-list" id="d-txs"></div>
     </div>
@@ -734,9 +718,8 @@
     </button>
     <div class="topbar-info">
       <div class="topbar-title">Novo lançamento</div>
-      <div class="topbar-sub" id="l-sub">Ana · maio 2026</div>
+      <div class="topbar-sub" id="l-sub"></div>
     </div>
-    <div class="av-sm" style="background:#9FE1CB;color:#085041;width:32px;height:32px;font-size:11px;">AN</div>
   </div>
   <div class="scroll-body">
     <div id="l-toast-inline" style="display:none;padding:10px 14px;border-radius:var(--r-sm);font-size:13px;font-weight:500;"></div>
@@ -859,30 +842,6 @@
 </div>
 
 <!-- ══════════════════════════════════════
-     TELA 6 — INVESTIMENTOS
-══════════════════════════════════════ -->
-<div class="tela" id="t-invest">
-  <div class="topbar">
-    <button class="btn-icon btn-back" onclick="ir('t-dash')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m7-7l-7 7 7 7"/></svg>
-    </button>
-    <div class="topbar-info">
-      <div class="topbar-title">Sugestões de investimento</div>
-      <div class="topbar-sub">Baseado no seu perfil e saldo disponível</div>
-    </div>
-  </div>
-  <div class="scroll-body">
-    <div class="card" style="background:var(--verde-100);border-color:var(--verde-200);">
-      <div style="font-size:13px;color:var(--verde-800);">💡 <strong>Fin identificou</strong> R$ 3.200 parados na sua Carteira. Veja o que fazer com esse dinheiro:</div>
-    </div>
-    <div class="sec-title">Renda fixa</div>
-    <div style="display:flex;flex-direction:column;gap:10px;" id="inv-lista"></div>
-    <div class="sec-title" style="margin-top:8px;">Renda variável</div>
-    <div style="display:flex;flex-direction:column;gap:10px;" id="inv-lista2"></div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════
      TELA 7 — PERFIL
 ══════════════════════════════════════ -->
 <div class="tela" id="t-perfil">
@@ -893,10 +852,10 @@
     <div class="topbar-title">Perfil e configurações</div>
   </div>
   <div class="scroll-body">
-    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 0 6px;">
-      <div style="width:72px;height:72px;border-radius:50%;background:#9FE1CB;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:500;color:#085041;">AN</div>
-      <div style="font-size:17px;font-weight:500;">Ana Silva</div>
-      <div style="font-size:13px;color:var(--texto-2);">ana@familia.com</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 0 6px;cursor:pointer;" onclick="editarNomeUsuario()">
+      <div id="p-av" style="width:72px;height:72px;border-radius:50%;background:#9FE1CB;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:500;color:#085041;">EU</div>
+      <div id="p-nome" style="font-size:17px;font-weight:500;">Toque para definir seu nome</div>
+      <div style="font-size:12px;color:var(--texto-3);">✏️ Toque para editar</div>
     </div>
     <div style="display:flex;flex-direction:column;gap:2px;">
       <div style="font-size:12px;font-weight:500;color:var(--texto-2);margin-bottom:8px;">Membros da família</div>
@@ -910,7 +869,7 @@
         <div id="p-configs"></div>
       </div>
     </div>
-    <button class="btn-sec" style="color:var(--coral-600);border-color:var(--coral-100);">Sair da conta</button>
+    <div style="text-align:center;font-size:11px;color:var(--texto-3);padding:8px 0;">FinFamília · dados salvos neste dispositivo</div>
   </div>
 </div>
 
@@ -1341,7 +1300,7 @@ function toast(msg, err=false) {
 // ── PERSISTÊNCIA ──
 function salvarDados() {
   try {
-    localStorage.setItem('ff_dados', JSON.stringify({ contas, transacoes, metas, categorias }));
+    localStorage.setItem('ff_dados', JSON.stringify({ contas, transacoes, metas, categorias, membros, recorrentes }));
   } catch(e) {}
 }
 
@@ -1353,22 +1312,29 @@ function carregarDados() {
       if(Array.isArray(d.transacoes)) transacoes = d.transacoes;
       if(Array.isArray(d.metas))      metas = d.metas;
       if(Array.isArray(d.categorias) && d.categorias.length) categorias = d.categorias;
+      if(Array.isArray(d.membros) && d.membros.length) membros = d.membros;
+      if(Array.isArray(d.recorrentes)) recorrentes = d.recorrentes;
     }
   } catch(e) {}
 }
 
 function resetarDados() {
-  if(!confirm('Apagar TODOS os lançamentos, contas e metas? Esta ação não pode ser desfeita. Use para limpar os dados de demonstração e começar o uso real.')) return;
+  if(!confirm('Apagar TODOS os lançamentos, contas, metas e membros de demonstração? Esta ação não pode ser desfeita. Use para começar o uso real da família.')) return;
   contas = [];
   transacoes = [];
   metas = [];
+  recorrentes = [];
+  membros = [{ id:'m'+Date.now(), nome: localStorage.getItem('ff_nome') || 'Eu', cor:CORES_MEMBRO[0][0], corTx:CORES_MEMBRO[0][1] }];
+  titContasAtual = membros[0].id;
+  dashMembro = 'familia';
   salvarDados();
   atualizarSelects();
+  renderMembrosChips();
   renderDash();
   renderContas();
   renderMetas();
   renderPerfil();
-  toast('Dados apagados! App pronto para uso real da família.');
+  toast('Dados apagados! Adicione os membros da família no Perfil.');
 }
 
 // salva também ao sair do app
@@ -1404,12 +1370,81 @@ let metas = [
   {id:3,nome:'Troca do carro',icon:'🚗',total:50000,atual:12000,prazo:'jun/2026'},
 ];
 
-let titulares = [
-  {id:'familia',nome:'Família',sig:'',cor:'#D3D1C7',corTx:'#444441'},
-  {id:'ana',nome:'Ana',sig:'AN',cor:'#9FE1CB',corTx:'#085041'},
-  {id:'carlos',nome:'Carlos',sig:'CA',cor:'#B5D4F4',corTx:'#0C447C'},
-  {id:'bia',nome:'Bia',sig:'BI',cor:'#F4C0D1',corTx:'#72243E'},
+// ── MEMBROS DA FAMÍLIA (dinâmico) ──
+const CORES_MEMBRO = [
+  ['#9FE1CB','#085041'], ['#B5D4F4','#0C447C'], ['#F4C0D1','#72243E'],
+  ['#F0D9A8','#6B4E0B'], ['#D9CFF4','#4527A0'], ['#B8E6E0','#0B4F4A'],
 ];
+
+let membros = [
+  {id:'ana',    nome:'Ana',    cor:'#9FE1CB', corTx:'#085041'},
+  {id:'carlos', nome:'Carlos', cor:'#B5D4F4', corTx:'#0C447C'},
+  {id:'bia',    nome:'Bia',    cor:'#F4C0D1', corTx:'#72243E'},
+];
+
+function sigla(nome) { return (nome||'').trim().slice(0,2).toUpperCase(); }
+function nomeMembro(id) { const m = membros.find(x=>x.id===id); return m ? m.nome : (id==='familia'?'Família':id); }
+
+function adicionarMembro() {
+  const n = prompt('Nome do novo membro da família:');
+  if(!n || !n.trim()) return;
+  const i = membros.length % CORES_MEMBRO.length;
+  membros.push({ id:'m'+Date.now(), nome:n.trim(), cor:CORES_MEMBRO[i][0], corTx:CORES_MEMBRO[i][1] });
+  renderPerfil(); renderMembrosChips(); renderContas();
+  toast(`${n.trim()} adicionado à família!`);
+}
+
+function renomearMembro(id) {
+  const m = membros.find(x=>x.id===id);
+  if(!m) return;
+  const n = prompt('Novo nome:', m.nome);
+  if(!n || !n.trim()) return;
+  m.nome = n.trim();
+  renderPerfil(); renderMembrosChips(); renderDash(); renderContas();
+  toast('Membro renomeado!');
+}
+
+function excluirMembro(id) {
+  if(membros.length <= 1) { toast('É preciso ter ao menos um membro.', true); return; }
+  const m = membros.find(x=>x.id===id);
+  if(!confirm(`Excluir ${m.nome}? As contas e lançamentos dele também serão excluídos.`)) return;
+  membros = membros.filter(x=>x.id!==id);
+  contas = contas.filter(c=>c.titular!==id);
+  transacoes = transacoes.filter(t=>t.titular!==id);
+  if(titContasAtual===id) titContasAtual = membros[0].id;
+  if(dashMembro===id) dashMembro = 'familia';
+  renderPerfil(); renderMembrosChips(); renderDash(); renderContas();
+  toast(`${m.nome} removido da família.`);
+}
+
+function editarNomeUsuario() {
+  const atual = localStorage.getItem('ff_nome') || '';
+  const n = prompt('Seu nome:', atual);
+  if(!n || !n.trim()) return;
+  localStorage.setItem('ff_nome', n.trim());
+  atualizarNomeUsuario();
+  toast('Nome atualizado!');
+}
+
+function atualizarNomeUsuario() {
+  const nome = localStorage.getItem('ff_nome');
+  if(nome) {
+    document.getElementById('p-nome').textContent = nome;
+    document.getElementById('p-av').textContent = sigla(nome);
+  }
+}
+
+function editarChaveAPI() {
+  const atual = getApiKey();
+  const masked = atual ? atual.slice(0,12)+'•••' : '(não configurada)';
+  const n = prompt(`Chave atual: ${masked}\n\nCole a nova chave da API Anthropic (sk-ant-...):`);
+  if(n === null) return;
+  if(!n.trim()) { toast('Operação cancelada.', true); return; }
+  if(!n.trim().startsWith('sk-ant-')) { toast('Chave inválida. Deve começar com sk-ant-', true); return; }
+  localStorage.setItem('ff_apikey', n.trim());
+  renderPerfil();
+  toast('Chave da API atualizada!');
+}
 
 let pizzaChart, lineChart;
 let dashMembro = 'familia';
@@ -1427,7 +1462,6 @@ function ir(tela) {
   if(tela==='t-lanc') initLanc();
   if(tela==='t-contas') renderContas();
   if(tela==='t-metas') renderMetas();
-  if(tela==='t-invest') renderInvest();
   if(tela==='t-invest2') initInvest2();
   if(tela==='t-perfil') renderPerfil();
   if(tela==='t-fin') initFin();
@@ -1466,6 +1500,22 @@ const DASH_DATA = {
   },
 };
 
+function renderMembrosChips() {
+  const el = document.getElementById('d-members');
+  el.innerHTML = `
+    <button class="m-chip ${dashMembro==='familia'?'ativo':''}" data-m="familia" onclick="dashFiltrar(this)">
+      <div class="m-av" style="background:var(--cinza-200);color:var(--cinza-700)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      </div>
+      <span>Família</span>
+    </button>` +
+    membros.map(m=>`
+      <button class="m-chip ${dashMembro===m.id?'ativo':''}" data-m="${m.id}" onclick="dashFiltrar(this)">
+        <div class="m-av" style="background:${m.cor};color:${m.corTx}">${sigla(m.nome)}</div>
+        <span>${m.nome}</span>
+      </button>`).join('');
+}
+
 function dashFiltrar(el) {
   document.querySelectorAll('#d-members .m-chip').forEach(b=>b.classList.remove('ativo'));
   el.classList.add('ativo');
@@ -1475,11 +1525,16 @@ function dashFiltrar(el) {
 
 function renderDash() {
   const m = dashMembro;
-  const nomes = { familia:'da família', ana:'de Ana', carlos:'de Carlos', bia:'de Bia' };
+  const memb = membros.find(x=>x.id===m);
+  const labelNome = m==='familia' ? 'da família' : `de ${memb ? memb.nome : ''}`;
 
-  // dados reais
-  const cs  = m==='familia' ? contas : contas.filter(c=>c.titular===m);
-  const txs = transacoes.filter(t=> m==='familia' || t.titular===m || t.titular==='familia');
+  // dados reais — privacidade: na visão família, contas privadas ficam ocultas
+  const cs = m==='familia' ? contas.filter(c=>c.pub) : contas.filter(c=>c.titular===m);
+  const contasPrivadas = new Set(contas.filter(c=>!c.pub).map(c=>c.titular+'|'+c.nome));
+  const txs = transacoes.filter(t => {
+    if(m==='familia') return !contasPrivadas.has(t.titular+'|'+t.conta);
+    return t.titular===m || t.titular==='familia';
+  });
 
   // saldo real das contas
   const saldo = cs.reduce((s,c)=>s+c.saldo,0);
@@ -1493,20 +1548,19 @@ function renderDash() {
 
   const mesNome = hoje.toLocaleDateString('pt-BR',{month:'long'});
 
-  document.getElementById('d-hero-label').textContent = `Saldo total ${nomes[m]||''}`;
+  document.getElementById('d-hero-label').textContent = `Saldo total ${labelNome}`;
   document.getElementById('d-hero-val').textContent = 'R$ '+fmt0(saldo);
   document.getElementById('d-ent').textContent = 'R$ '+fmt0(ent);
   document.getElementById('d-sai').textContent = 'R$ '+fmt0(sai);
   document.getElementById('d-qnt').textContent = cs.length;
-  document.getElementById('d-pizza-title').textContent = `Distribuição — ${m==='familia'?'família':m.charAt(0).toUpperCase()+m.slice(1)}`;
+  document.getElementById('d-pizza-title').textContent = `Distribuição — ${m==='familia'?'família':(memb?memb.nome:'')}`;
   document.getElementById('pc-label').textContent = 'total';
   document.getElementById('pc-val').textContent = 'R$ '+fmt0(saldo);
 
   // pizza com contas reais
   const coresPizza = ['#1D9E75','#5DCAA5','#378ADD','#85B7EB','#D4537E','#EF9F27','#B4B2A9','#9F7AEA'];
-  const titNomes = { ana:'Ana', carlos:'Carlos', bia:'Bia' };
   const slices = cs.filter(c=>c.saldo>0).map((c,i)=>({
-    nome: m==='familia' ? `${titNomes[c.titular]||c.titular} · ${c.nome}` : c.nome,
+    nome: m==='familia' ? `${nomeMembro(c.titular)} · ${c.nome}` : c.nome,
     val: c.saldo,
     cor: coresPizza[i % coresPizza.length]
   }));
@@ -1526,10 +1580,17 @@ function renderDash() {
 }
 
 function renderPizza(slices, total) {
+  const leg = document.getElementById('pizza-leg');
+  if(!slices.length) {
+    if(pizzaChart) { pizzaChart.destroy(); pizzaChart = null; }
+    const canvas = document.getElementById('pizzaChart');
+    canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+    leg.innerHTML = '<div style="font-size:13px;color:var(--texto-3);text-align:center;padding:10px;">Nenhuma conta com saldo para exibir.</div>';
+    return;
+  }
   const labels = slices.map(s=>s.nome);
   const data   = slices.map(s=>s.val);
   const colors = slices.map(s=>s.cor);
-  const leg = document.getElementById('pizza-leg');
   leg.innerHTML = slices.map(s=>`
     <div class="p-leg" onclick="pizzaFoco('${s.nome}',${s.val},${total})">
       <div class="p-dot" style="background:${s.cor}"></div>
@@ -1589,7 +1650,12 @@ function renderLine(lineE, lineS) {
 }
 
 function renderDashTx() {
-  const txs = transacoes.filter(t=> dashMembro==='familia'||t.titular===dashMembro||t.titular==='familia').slice(0,4);
+  const m = dashMembro;
+  const contasPrivadas = new Set(contas.filter(c=>!c.pub).map(c=>c.titular+'|'+c.nome));
+  const txs = transacoes.filter(t => {
+    if(m==='familia') return !contasPrivadas.has(t.titular+'|'+t.conta);
+    return t.titular===m || t.titular==='familia';
+  }).slice(0,4);
   renderTxList('d-txs', txs);
 }
 
@@ -1613,32 +1679,41 @@ function renderTxList(id, txs) {
 // CONTAS
 // ══════════════════════════
 let titContasAtual = 'ana';
-const titList = ['ana','carlos','bia'];
-const titInfo = {
-  ana:   {nome:'Ana',sig:'AN',cor:'#9FE1CB',corTx:'#085041',ent:8200,sai:3450},
-  carlos:{nome:'Carlos',sig:'CA',cor:'#B5D4F4',corTx:'#0C447C',ent:9800,sai:4200},
-  bia:   {nome:'Bia',sig:'BI',cor:'#F4C0D1',corTx:'#72243E',ent:1800,sai:1780},
-};
 
 function ciclaTitular() {
-  const idx = titList.indexOf(titContasAtual);
-  titContasAtual = titList[(idx+1)%titList.length];
-  const t = titInfo[titContasAtual];
-  document.getElementById('av-sig').textContent = t.sig;
-  document.getElementById('av-sig').style.background = t.cor;
-  document.getElementById('av-sig').style.color = t.corTx;
-  document.getElementById('av-nome').textContent = t.nome;
+  if(!membros.length) return;
+  const idx = membros.findIndex(m=>m.id===titContasAtual);
+  const prox = membros[(idx+1) % membros.length];
+  titContasAtual = prox.id;
   renderContas();
 }
 
 function renderContas() {
-  const t = titInfo[titContasAtual];
+  // garante titular válido
+  if(!membros.find(m=>m.id===titContasAtual)) titContasAtual = membros[0]?.id;
+  const m = membros.find(x=>x.id===titContasAtual);
+  if(!m) return;
+
+  // atualiza pílula do topo
+  document.getElementById('av-sig').textContent = sigla(m.nome);
+  document.getElementById('av-sig').style.background = m.cor;
+  document.getElementById('av-sig').style.color = m.corTx;
+  document.getElementById('av-nome').textContent = m.nome;
+
   const cs = contas.filter(c=>c.titular===titContasAtual);
   const saldo = cs.reduce((s,c)=>s+c.saldo,0);
-  document.getElementById('c-label').textContent = `Saldo total de ${t.nome}`;
+
+  // entradas e saídas reais do mês atual
+  const hoje = new Date();
+  const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
+  const txsMes = transacoes.filter(t=>t.titular===titContasAtual && t.data.startsWith(mesAtual));
+  const ent = txsMes.filter(t=>t.tipo==='e').reduce((s,t)=>s+t.val,0);
+  const sai = txsMes.filter(t=>t.tipo==='s').reduce((s,t)=>s+t.val,0);
+
+  document.getElementById('c-label').textContent = `Saldo total de ${m.nome}`;
   document.getElementById('c-saldo').textContent = 'R$ '+fmt0(saldo);
-  document.getElementById('c-ent').textContent = 'R$ '+fmt0(t.ent);
-  document.getElementById('c-sai').textContent = 'R$ '+fmt0(t.sai);
+  document.getElementById('c-ent').textContent = 'R$ '+fmt0(ent);
+  document.getElementById('c-sai').textContent = 'R$ '+fmt0(sai);
   document.getElementById('c-qnt').textContent = cs.length;
 
   const lista = document.getElementById('c-lista');
@@ -1695,8 +1770,10 @@ function excluirConta(id) {
 
 function verLanc(id) {
   const c = contas.find(c=>c.id===id);
-  toast(`Abrindo lançamentos de ${c.nome}…`);
-  navIr(document.querySelector('[data-tela="t-dash"]'),'t-dash');
+  if(!c) return;
+  const txs = transacoes.filter(t=>t.conta===c.nome && t.titular===c.titular);
+  lancListaCustom = { txs, titulo: `Lançamentos — ${c.nome} (${txs.length})` };
+  navIr(null,'t-lanc');
 }
 
 function abrirModalConta(editId=null) {
@@ -1749,6 +1826,8 @@ function selIco(el) {
 // ══════════════════════════
 // LANÇAMENTO
 // ══════════════════════════
+let lancListaCustom = null; // {txs, titulo} — usado por "Ver todas" e "Lançamentos da conta"
+
 function initLanc() {
   lancTipo='e';
   document.getElementById('tb-e').className='tipo-btn e ativo';
@@ -1761,9 +1840,22 @@ function initLanc() {
   document.getElementById('l-cat').value='';
   document.getElementById('l-rec').classList.remove('on');
   document.getElementById('l-toast-inline').style.display='none';
+  const hoje = new Date();
+  document.getElementById('l-sub').textContent = hoje.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
   renderLancContas();
-  renderTxList('l-txs', transacoes.slice(0,5));
-  document.getElementById('l-list-title').textContent='Últimos lançamentos';
+  if(lancListaCustom) {
+    renderTxList('l-txs', lancListaCustom.txs);
+    document.getElementById('l-list-title').textContent = lancListaCustom.titulo;
+    lancListaCustom = null;
+  } else {
+    renderTxList('l-txs', transacoes.slice(0,5));
+    document.getElementById('l-list-title').textContent='Últimos lançamentos';
+  }
+}
+
+function verTodasTx() {
+  lancListaCustom = { txs: transacoes, titulo: `Todos os lançamentos (${transacoes.length})` };
+  navIr(null,'t-lanc');
 }
 
 function setTipo(t) {
@@ -1776,13 +1868,17 @@ function setTipo(t) {
 }
 
 function renderLancContas() {
-  const cs = contas.filter(c=>c.titular==='ana');
+  const cs = contas;
   lancConta = cs[0]?.id||null;
+  if(!cs.length) {
+    document.getElementById('l-contas').innerHTML = '<div style="grid-column:1/-1;font-size:13px;color:var(--texto-2);padding:8px;">Nenhuma conta criada ainda. Crie em Contas primeiro.</div>';
+    return;
+  }
   document.getElementById('l-contas').innerHTML = cs.map((c,i)=>`
     <div class="cc ${i===0?'sel':''}" data-cid="${c.id}" onclick="selConta(this,${c.id})">
       <div class="cc-ico">${c.icon}</div>
       <div class="cc-nome">${c.nome}</div>
-      <div class="cc-val">R$ ${fmt0(c.saldo)}</div>
+      <div class="cc-val">${membros.length>1 ? nomeMembro(c.titular) : 'R$ '+fmt0(c.saldo)}</div>
     </div>`).join('');
 }
 
@@ -1790,6 +1886,8 @@ function selConta(el,id) {
   document.querySelectorAll('#l-contas .cc').forEach(c=>c.classList.remove('sel'));
   el.classList.add('sel'); lancConta=id;
 }
+
+let recorrentes = []; // lançamentos que se repetem todo mês
 
 function lancar() {
   const val  = parseFloat(document.getElementById('l-val').value);
@@ -1799,15 +1897,46 @@ function lancar() {
   if(!val||val<=0||!desc){ toast('Preencha ao menos o valor e a descrição.', true); return; }
   const c = contas.find(c=>c.id===lancConta);
   const contaNome = c?c.nome:'Sem conta';
-  const tx = {id:Date.now(),tipo:lancTipo,val,desc,data:data||new Date().toISOString().slice(0,10),cat:cat||'Outro',conta:contaNome,titular:'ana'};
+  const isRec = document.getElementById('l-rec').classList.contains('on');
+  const recId = isRec ? 'rec'+Date.now() : null;
+  const tx = {id:Date.now(),tipo:lancTipo,val,desc,data:data||new Date().toISOString().slice(0,10),cat:cat||'Outro',conta:contaNome,titular: c ? c.titular : (membros[0]?.id||''), recId};
   transacoes.unshift(tx);
   if(c){ c.saldo += lancTipo==='e'?val:-val; }
-  toast(`${lancTipo==='e'?'Entrada':'Saída'} de R$ ${fmt(val)} registrada!`);
+  if(isRec) {
+    const dia = parseInt(tx.data.slice(8));
+    recorrentes.push({ id:recId, tipo:lancTipo, val, desc, cat:tx.cat, conta:contaNome, titular:tx.titular, dia });
+    toast(`${lancTipo==='e'?'Entrada':'Saída'} recorrente criada! Repetirá todo dia ${dia}.`);
+  } else {
+    toast(`${lancTipo==='e'?'Entrada':'Saída'} de R$ ${fmt(val)} registrada!`);
+  }
   document.getElementById('l-val').value='';
   document.getElementById('l-desc').value='';
   document.getElementById('l-cat').value='';
+  document.getElementById('l-rec').classList.remove('on');
   renderTxList('l-txs', transacoes.slice(0,5));
   renderDash();
+}
+
+function processarRecorrentes() {
+  // ao abrir o app: cria os lançamentos recorrentes do mês que ainda não existem
+  const hoje = new Date();
+  const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
+  const diaHoje = hoje.getDate();
+  let criados = 0;
+  recorrentes.forEach(r => {
+    if(diaHoje < r.dia) return; // ainda não chegou o dia
+    const jaExiste = transacoes.some(t => t.recId===r.id && t.data.startsWith(mesAtual));
+    if(jaExiste) return;
+    const dataTx = `${mesAtual}-${String(Math.min(r.dia,28)).padStart(2,'0')}`;
+    transacoes.unshift({ id:Date.now()+criados, tipo:r.tipo, val:r.val, desc:r.desc+' (recorrente)', data:dataTx, cat:r.cat, conta:r.conta, titular:r.titular, recId:r.id });
+    const c = contas.find(c=>c.nome===r.conta && c.titular===r.titular);
+    if(c) c.saldo += r.tipo==='e' ? r.val : -r.val;
+    criados++;
+  });
+  if(criados > 0) {
+    salvarDados();
+    setTimeout(()=>toast(`${criados} lançamento(s) recorrente(s) deste mês registrado(s) automaticamente.`), 800);
+  }
 }
 
 // ══════════════════════════
@@ -1829,8 +1958,50 @@ function renderMetas() {
         <div class="meta-atual">R$ ${fmt0(m.atual)} acumulados</div>
         <div class="meta-total">meta: R$ ${fmt0(m.total)}</div>
       </div>
+      <div style="display:flex;gap:6px;margin-top:12px;">
+        <button onclick="aportarMeta(${m.id})" style="flex:2;padding:8px;background:var(--verde-100);color:var(--verde-800);border:0.5px solid var(--verde-200);border-radius:var(--r-sm);font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">+ Aportar</button>
+        <button onclick="editarMeta(${m.id})" style="flex:1;padding:8px;background:var(--branco);color:var(--texto-2);border:0.5px solid var(--borda-2);border-radius:var(--r-sm);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;">✏️ Editar</button>
+        <button onclick="excluirMeta(${m.id})" style="flex:1;padding:8px;background:var(--branco);color:var(--coral-600);border:0.5px solid var(--coral-100);border-radius:var(--r-sm);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;">🗑</button>
+      </div>
     </div>`;
   }).join('');
+}
+
+function aportarMeta(id) {
+  const m = metas.find(x=>x.id===id);
+  if(!m) return;
+  const v = prompt(`Quanto deseja aportar em "${m.nome}"? (R$)`);
+  const val = parseFloat((v||'').replace(',','.'));
+  if(!val || val<=0) return;
+  m.atual += val;
+  renderMetas();
+  const pct = Math.min(Math.round(m.atual/m.total*100),100);
+  toast(pct>=100 ? `🎉 Meta "${m.nome}" atingida! Parabéns!` : `R$ ${fmt(val)} aportado em "${m.nome}" (${pct}%)`);
+}
+
+function editarMeta(id) {
+  const m = metas.find(x=>x.id===id);
+  if(!m) return;
+  const nome = prompt('Nome da meta:', m.nome);
+  if(nome===null) return;
+  const total = prompt('Valor alvo (R$):', m.total);
+  if(total===null) return;
+  const atual = prompt('Valor acumulado (R$):', m.atual);
+  if(atual===null) return;
+  m.nome  = nome.trim() || m.nome;
+  m.total = parseFloat(String(total).replace(',','.')) || m.total;
+  m.atual = parseFloat(String(atual).replace(',','.')) || 0;
+  renderMetas();
+  toast(`Meta "${m.nome}" atualizada!`);
+}
+
+function excluirMeta(id) {
+  const m = metas.find(x=>x.id===id);
+  if(!m) return;
+  if(!confirm(`Excluir a meta "${m.nome}"?`)) return;
+  metas = metas.filter(x=>x.id!==id);
+  renderMetas();
+  toast(`Meta "${m.nome}" excluída.`);
 }
 
 function abrirModalMeta() {
@@ -1862,78 +2033,38 @@ function selIcoMeta(el) {
 }
 
 // ══════════════════════════
-// INVESTIMENTOS
-// ══════════════════════════
-const INVEST = [
-  {icon:'📊',nome:'Tesouro Selic 2027',desc:'Liquidez diária · Risco baixo',pct:'12,35',tipo:'a.a.',badge:'safe',badgeTxt:'Conservador'},
-  {icon:'🏦',nome:'CDB 110% CDI',desc:'24 meses · Garantido FGC',pct:'13,10',tipo:'a.a.',badge:'hot',badgeTxt:'Mais rendimento'},
-  {icon:'📈',nome:'LCI isento de IR',desc:'12 meses · Renda fixa',pct:'11,80',tipo:'a.a.',badge:'new',badgeTxt:'Novo'},
-];
-const INVEST2 = [
-  {icon:'🏢',nome:'FII HGLG11',desc:'Galpões logísticos · REIT BR',pct:'8,4',tipo:'div/ano',badge:'hot',badgeTxt:'Alta liquidez'},
-  {icon:'💹',nome:'ETF BOVA11',desc:'Ibovespa · Diversificado',pct:'15,2',tipo:'12m',badge:'new',badgeTxt:'Longo prazo'},
-];
-
-function renderInvest() {
-  document.getElementById('inv-lista').innerHTML = INVEST.map(i=>`
-    <div class="inv-card">
-      <div class="inv-ico">${i.icon}</div>
-      <div class="inv-info">
-        <div class="inv-nome">${i.nome}</div>
-        <div class="inv-desc">${i.desc}</div>
-        <span class="badge ${i.badge}">${i.badgeTxt}</span>
-      </div>
-      <div class="inv-taxa">
-        <div class="inv-pct">${i.pct}%</div>
-        <div class="inv-tipo">${i.tipo}</div>
-      </div>
-    </div>`).join('');
-  document.getElementById('inv-lista2').innerHTML = INVEST2.map(i=>`
-    <div class="inv-card">
-      <div class="inv-ico">${i.icon}</div>
-      <div class="inv-info">
-        <div class="inv-nome">${i.nome}</div>
-        <div class="inv-desc">${i.desc}</div>
-        <span class="badge ${i.badge}">${i.badgeTxt}</span>
-      </div>
-      <div class="inv-taxa">
-        <div class="inv-pct">${i.pct}%</div>
-        <div class="inv-tipo">${i.tipo}</div>
-      </div>
-    </div>`).join('');
-}
-
-// ══════════════════════════
 // PERFIL
 // ══════════════════════════
 function renderPerfil() {
-  const row=(ico,txt,sub)=>`<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:0.5px solid var(--borda);">
-    <span style="font-size:18px;">${ico}</span>
-    <div style="flex:1;"><div style="font-size:13px;">${txt}</div>${sub?`<div style="font-size:11px;color:var(--texto-2);">${sub}</div>`:''}</div>
-    <span style="color:var(--texto-3);font-size:16px;">›</span></div>`;
+  atualizarNomeUsuario();
 
   const filtroPerfil = localStorage.getItem('ff_filtro_perfil') !== 'false';
 
-  document.getElementById('p-membros').innerHTML =
-    row('👩','Ana Silva','Titular principal')+
-    row('👨','Carlos Silva','Membro')+
-    row('👧','Bia Silva','Membro')+
-    `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;" onclick="toast('Convite enviado!')">
+  // membros editáveis de verdade
+  document.getElementById('p-membros').innerHTML = membros.map(m=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:0.5px solid var(--borda);">
+      <div style="width:32px;height:32px;border-radius:50%;background:${m.cor};color:${m.corTx};font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${sigla(m.nome)}</div>
+      <div style="flex:1;font-size:13px;font-weight:500;">${m.nome}</div>
+      <button onclick="renomearMembro('${m.id}')" style="padding:5px 10px;border:0.5px solid var(--borda-2);border-radius:var(--r-sm);background:var(--branco);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--texto-2);">✏️</button>
+      <button onclick="excluirMembro('${m.id}')" style="padding:5px 10px;border:0.5px solid var(--coral-100);border-radius:var(--r-sm);background:var(--branco);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--coral-600);">🗑</button>
+    </div>`).join('') +
+    `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;" onclick="adicionarMembro()">
       <span style="font-size:18px;">➕</span>
-      <div style="flex:1;font-size:13px;color:var(--verde);font-weight:500;">Convidar membro</div></div>`;
+      <div style="flex:1;font-size:13px;color:var(--verde);font-weight:500;">Adicionar membro</div></div>`;
 
+  // configurações — apenas o que funciona
   document.getElementById('p-configs').innerHTML =
-    row('🔔','Notificações','WhatsApp e push')+
-    row('🔒','Privacidade e segurança','')+
-    row('🌙','Tema','Claro')+
-    row('📱','Vincular WhatsApp','Para alertas do Fin')+
-    row('🤖','Chave da API (Fin)', localStorage.getItem('ff_apikey') ? 'Configurada ✓' : 'Não configurada')+
-    `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:0.5px solid var(--borda);">
-      <span style="font-size:18px;">🏷️</span>
-      <div style="flex:1;cursor:pointer;" onclick="abrirCategorias()">
-        <div style="font-size:13px;">Categorias</div>
-        <div style="font-size:11px;color:var(--texto-2);">${categorias.length} categorias</div>
+    `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:0.5px solid var(--borda);cursor:pointer;" onclick="editarChaveAPI()">
+      <span style="font-size:18px;">🤖</span>
+      <div style="flex:1;">
+        <div style="font-size:13px;">Chave da API (Fin)</div>
+        <div style="font-size:11px;color:var(--texto-2);">${localStorage.getItem('ff_apikey') ? 'Configurada ✓ · toque para trocar' : 'Não configurada · toque para adicionar'}</div>
       </div>
+      <span style="color:var(--texto-3);font-size:16px;">›</span>
+    </div>`+
+    `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:0.5px solid var(--borda);cursor:pointer;" onclick="abrirCategorias()">
+      <span style="font-size:18px;">🏷️</span>
+      <div style="flex:1;"><div style="font-size:13px;">Categorias</div><div style="font-size:11px;color:var(--texto-2);">${categorias.length} categorias</div></div>
       <span style="color:var(--texto-3);font-size:16px;">›</span>
     </div>`+
     `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:0.5px solid var(--borda);">
@@ -1953,7 +2084,13 @@ function renderPerfil() {
         <div style="font-size:11px;color:var(--texto-2);">Limpar demonstração e começar uso real</div>
       </div>
     </div>`+
-    row('❓','Ajuda e suporte','');
+    `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;">
+      <span style="font-size:18px;">🔜</span>
+      <div style="flex:1;">
+        <div style="font-size:13px;color:var(--texto-3);">Em breve</div>
+        <div style="font-size:11px;color:var(--texto-3);">Notificações WhatsApp, temas e sincronização entre dispositivos</div>
+      </div>
+    </div>`;
 }
 
 function toggleFiltroPerfil() {
@@ -2230,12 +2367,45 @@ function renderMonit() {
   }
   el.innerHTML = monitAtivos.map((a,i)=>`
     <div style="background:var(--branco);border:0.5px solid var(--borda);border-radius:var(--r-md);padding:12px 16px;display:flex;align-items:center;gap:12px;">
-      <div style="background:var(--verde-100);border-radius:var(--r-sm);width:42px;height:42px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <div style="background:var(--verde-100);border-radius:var(--r-sm);width:42px;height:42px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;" onclick="analisarMonitorado('${a}')">
         <span style="font-size:11px;font-weight:500;color:var(--verde-800);">${a}</span>
       </div>
-      <div style="flex:1;font-size:13px;font-weight:500;">${a}</div>
+      <div style="flex:1;cursor:pointer;" onclick="analisarMonitorado('${a}')">
+        <div style="font-size:13px;font-weight:500;">${a}</div>
+        <div style="font-size:11px;color:var(--texto-2);">Toque para análise do Fin</div>
+      </div>
       <button onclick="monitRemover(${i})" style="background:none;border:none;cursor:pointer;color:var(--texto-3);font-size:18px;">✕</button>
     </div>`).join('');
+}
+
+function analisarMonitorado(s) {
+  // se já está na lista curada, abre a ficha completa
+  const a = ATIVOS.find(x=>x.sigla===s);
+  if(a) { abrirAtivo(s); return; }
+
+  // análise genérica via IA
+  document.getElementById('ativo-titulo').textContent = s;
+  document.getElementById('ativo-subtitulo').textContent = 'Análise sob demanda';
+  const chat = document.getElementById('ativo-chat');
+  chat.innerHTML = '<div class="card"><div style="font-size:13px;color:var(--texto-2);font-style:italic;">🤖 Fin está analisando este ativo...</div></div>';
+  ir('t-ativo');
+
+  const apiKey = getApiKey();
+  if(!apiKey) { chat.innerHTML = '<div class="card"><div style="font-size:13px;color:var(--texto-2);">Configure sua chave da API em Perfil para ver a análise do Fin.</div></div>'; return; }
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-6',
+      max_tokens:800,
+      system:'Você é o Fin, analista financeiro do app FinFamília. Escreva em português brasileiro, linguagem simples que até uma criança de 12 anos entenderia. Use parágrafos curtos. Nunca use jargão sem explicar. Se não conhecer o ativo com certeza, diga isso honestamente.',
+      messages:[{role:'user',content:`Analise o ativo "${s}". Cubra: 1) O que é, em linguagem simples 2) Pontos positivos 3) Riscos 4) Para qual perfil de investidor é indicado 5) Onde comprar no Brasil. Se for um ativo que você não reconhece, diga isso claramente e oriente a verificar a sigla.`}]
+    })
+  }).then(r=>r.json()).then(d=>{
+    const txt = d?.content?.[0]?.text || 'Análise indisponível.';
+    chat.innerHTML = `<div class="card"><div class="card-title">🤖 Análise do Fin — ${s}</div><div style="font-size:13px;color:var(--texto);line-height:1.7;">${txt.replace(/\n/g,'<br>')}</div></div>`;
+  }).catch(()=>{ chat.innerHTML='<div class="card"><div style="font-size:13px;color:var(--coral-600);">⚠️ Erro ao carregar análise. Verifique sua conexão.</div></div>'; });
 }
 
 function monitAdicionar() {
@@ -2609,7 +2779,7 @@ function finLancarTransacao(txt) {
 
   // detecta conta mencionada
   const contaEncontrada = contas.find(c => txt.toLowerCase().includes(c.nome.toLowerCase()));
-  const conta = contaEncontrada || contas.find(c=>c.titular==='ana') || contas[0];
+  const conta = contaEncontrada || contas[0];
 
   // extrai descrição limpa:
   // remove palavras de comando, valor monetário e nome da conta
@@ -2952,10 +3122,11 @@ function verificarSetup() {
 
 // ── INIT ──
 carregarDados();
+processarRecorrentes();
+renderMembrosChips();
 renderDash();
 renderContas();
 renderMetas();
-renderInvest();
 atualizarSelects();
 verificarSetup();
 </script>
