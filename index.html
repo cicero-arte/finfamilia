@@ -1196,6 +1196,11 @@
         </select>
       </div>
     </div>
+    <div class="field">
+      <label>Conta</label>
+      <select id="ml-conta" style="width:100%;padding:10px 12px;border:0.5px solid var(--borda-2);border-radius:var(--r-sm);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;">
+      </select>
+    </div>
     <div class="modal-btns">
       <button class="btn-sec" style="flex:1;color:var(--coral-600);border-color:var(--coral-100);" onclick="excluirLanc()">🗑 Excluir</button>
       <button class="btn-prim g" style="flex:2;" onclick="salvarLanc()">Salvar</button>
@@ -1869,22 +1874,41 @@ function setTipo(t) {
 
 function renderLancContas() {
   const cs = contas;
-  lancConta = cs[0]?.id||null;
+  const el = document.getElementById('l-contas');
+
   if(!cs.length) {
-    document.getElementById('l-contas').innerHTML = '<div style="grid-column:1/-1;font-size:13px;color:var(--texto-2);padding:8px;">Nenhuma conta criada ainda. Crie em Contas primeiro.</div>';
+    el.innerHTML = '<div style="grid-column:1/-1;font-size:13px;color:var(--texto-2);padding:8px 0;">Nenhuma conta criada ainda. Vá em <strong>Contas</strong> e crie uma primeiro.</div>';
+    lancConta = null;
     return;
   }
-  document.getElementById('l-contas').innerHTML = cs.map((c,i)=>`
-    <div class="cc ${i===0?'sel':''}" data-cid="${c.id}" onclick="selConta(this,${c.id})">
+
+  // mantém conta selecionada se ainda existe, senão vai para a primeira
+  if(!lancConta || !cs.find(c=>c.id===lancConta)) {
+    lancConta = cs[0].id;
+  }
+
+  el.innerHTML = cs.map(c=>`
+    <div class="cc ${c.id===lancConta?'sel':''}" data-cid="${c.id}" onclick="selConta(this,${c.id})">
       <div class="cc-ico">${c.icon}</div>
       <div class="cc-nome">${c.nome}</div>
-      <div class="cc-val">${membros.length>1 ? nomeMembro(c.titular) : 'R$ '+fmt0(c.saldo)}</div>
+      <div class="cc-val" style="font-size:10px;color:var(--texto-2);">${nomeMembro(c.titular)}</div>
+      <div style="font-size:10px;font-weight:500;color:${c.id===lancConta?'var(--verde-600)':'var(--texto-3)'};">R$ ${fmt0(c.saldo)}</div>
     </div>`).join('');
 }
 
-function selConta(el,id) {
-  document.querySelectorAll('#l-contas .cc').forEach(c=>c.classList.remove('sel'));
-  el.classList.add('sel'); lancConta=id;
+function selConta(el, id) {
+  lancConta = id;
+  // atualiza visual sem re-renderizar tudo
+  document.querySelectorAll('#l-contas .cc').forEach(c=>{
+    const cid = parseInt(c.dataset.cid);
+    const isSelected = cid === id;
+    c.classList.toggle('sel', isSelected);
+    const valEl = c.querySelector('div:last-child');
+    if(valEl) {
+      const conta = contas.find(x=>x.id===cid);
+      valEl.style.color = isSelected ? 'var(--verde-600)' : 'var(--texto-3)';
+    }
+  });
 }
 
 let recorrentes = []; // lançamentos que se repetem todo mês
@@ -1894,20 +1918,24 @@ function lancar() {
   const desc = document.getElementById('l-desc').value.trim();
   const data = document.getElementById('l-data').value;
   const cat  = document.getElementById('l-cat').value;
-  if(!val||val<=0||!desc){ toast('Preencha ao menos o valor e a descrição.', true); return; }
+  if(!val||val<=0)  { toast('Digite um valor maior que zero.', true); return; }
+  if(!desc)         { toast('Digite uma descrição para o lançamento.', true); return; }
+  if(!lancConta)    { toast('Selecione uma conta antes de registrar.', true); return; }
   const c = contas.find(c=>c.id===lancConta);
-  const contaNome = c?c.nome:'Sem conta';
+  if(!c)            { toast('Conta não encontrada. Selecione outra.', true); return; }
   const isRec = document.getElementById('l-rec').classList.contains('on');
   const recId = isRec ? 'rec'+Date.now() : null;
-  const tx = {id:Date.now(),tipo:lancTipo,val,desc,data:data||new Date().toISOString().slice(0,10),cat:cat||'Outro',conta:contaNome,titular: c ? c.titular : (membros[0]?.id||''), recId};
+  const tx = {id:Date.now(),tipo:lancTipo,val,desc,
+    data:data||new Date().toISOString().slice(0,10),
+    cat:cat||'Outro',conta:c.nome,titular:c.titular,recId};
   transacoes.unshift(tx);
-  if(c){ c.saldo += lancTipo==='e'?val:-val; }
+  c.saldo += lancTipo==='e' ? val : -val;
   if(isRec) {
     const dia = parseInt(tx.data.slice(8));
-    recorrentes.push({ id:recId, tipo:lancTipo, val, desc, cat:tx.cat, conta:contaNome, titular:tx.titular, dia });
-    toast(`${lancTipo==='e'?'Entrada':'Saída'} recorrente criada! Repetirá todo dia ${dia}.`);
+    recorrentes.push({id:recId,tipo:lancTipo,val,desc,cat:tx.cat,conta:c.nome,titular:c.titular,dia});
+    toast(`${lancTipo==='e'?'Entrada':'Saída'} recorrente em ${c.nome} criada! Repetirá todo dia ${dia}.`);
   } else {
-    toast(`${lancTipo==='e'?'Entrada':'Saída'} de R$ ${fmt(val)} registrada!`);
+    toast(`${lancTipo==='e'?'Entrada de R$':'Saída de R$'} ${fmt(val)} em ${c.nome} registrada!`);
   }
   document.getElementById('l-val').value='';
   document.getElementById('l-desc').value='';
@@ -2707,6 +2735,9 @@ function abrirEditarLanc(id) {
   document.getElementById('ml-desc').value = t.desc;
   document.getElementById('ml-data').value = t.data;
   document.getElementById('ml-cat').value  = t.cat;
+  // popula select de contas
+  const sel = document.getElementById('ml-conta');
+  sel.innerHTML = contas.map(c=>`<option value="${c.id}" ${c.nome===t.conta&&c.titular===t.titular?'selected':''}>${c.nome} (${nomeMembro(c.titular)}) — R$ ${fmt0(c.saldo)}</option>`).join('');
   document.getElementById('mo-lanc').classList.add('open');
 }
 
@@ -2721,19 +2752,29 @@ function salvarLanc() {
   if(!t) return;
   const novoVal  = parseFloat(document.getElementById('ml-val').value) || 0;
   const novoTipo = mlTipo;
-  // reverte saldo antigo na conta
+  const novaContaId = parseInt(document.getElementById('ml-conta').value);
+  const novaConta = contas.find(c=>c.id===novaContaId);
+
+  // reverte saldo na conta antiga
   const cAnt = contas.find(c=>c.nome===t.conta && c.titular===t.titular);
   if(cAnt) cAnt.saldo -= t.tipo==='e' ? t.val : -t.val;
-  // aplica novo valor
-  t.tipo  = novoTipo;
-  t.val   = novoVal;
-  t.desc  = document.getElementById('ml-desc').value.trim() || t.desc;
-  t.data  = document.getElementById('ml-data').value || t.data;
-  t.cat   = document.getElementById('ml-cat').value  || t.cat;
-  if(cAnt) cAnt.saldo += novoTipo==='e' ? novoVal : -novoVal;
+
+  // aplica mudanças
+  t.tipo    = novoTipo;
+  t.val     = novoVal;
+  t.desc    = document.getElementById('ml-desc').value.trim() || t.desc;
+  t.data    = document.getElementById('ml-data').value || t.data;
+  t.cat     = document.getElementById('ml-cat').value  || t.cat;
+  if(novaConta) { t.conta = novaConta.nome; t.titular = novaConta.titular; }
+
+  // aplica saldo na conta nova
+  const cNov = contas.find(c=>c.nome===t.conta && c.titular===t.titular);
+  if(cNov) cNov.saldo += novoTipo==='e' ? novoVal : -novoVal;
+
   fecharModais();
   renderTxList('l-txs', transacoes.slice(0,5));
   renderTxList('d-txs', transacoes.slice(0,4));
+  renderContas();
   renderDash();
   toast('Lançamento atualizado!');
 }
