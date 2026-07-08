@@ -422,6 +422,7 @@
       animation: up 0.25s ease; display: flex; flex-direction: column; gap: 14px;
     }
     @keyframes up { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes girar { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     .modal-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--cinza-200); margin: 0 auto; }
     .modal-title { font-size: 17px; font-weight: 500; }
     .modal-btns { display: flex; gap: 10px; }
@@ -592,7 +593,10 @@
 
     <!-- hero -->
     <div class="hero">
-      <div class="hero-label" id="d-hero-label">Saldo total da família</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <div class="hero-label" id="d-hero-label">Saldo total da família</div>
+        <button onclick="toggleSaldoOculto()" id="d-eye-btn" style="background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;flex-shrink:0;" aria-label="Ocultar saldo"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      </div>
       <div class="hero-valor" id="d-hero-val">R$ 28.650</div>
       <div class="hero-stats">
         <div class="hero-stat">
@@ -622,6 +626,20 @@
           </div>
         </div>
         <div class="pizza-legend" id="pizza-leg"></div>
+      </div>
+      <div style="position:relative;display:flex;justify-content:center;margin-top:4px;">
+        <button onclick="toggleContasDropdown()" style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;font-weight:500;color:var(--texto-2);border:0.5px solid var(--borda-2);border-radius:var(--r-sm);padding:8px 14px;background:var(--cinza-100);cursor:pointer;font-family:'DM Sans',sans-serif;width:100%;max-width:260px;">
+          <span id="dash-sel-label">👛 Contas selecionadas</span>
+          <span id="dash-sel-seta" style="color:var(--texto-3);transition:transform 0.15s;">▾</span>
+        </button>
+        <div id="dash-sel-panel" style="display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);z-index:40;background:var(--branco);border:0.5px solid var(--borda-2);border-radius:var(--r-md);box-shadow:0 8px 24px rgba(0,0,0,0.12);padding:10px;width:260px;">
+          <div style="font-size:10px;color:var(--texto-3);font-weight:600;text-transform:uppercase;letter-spacing:0.03em;padding:2px 6px 6px;">Visualizar contas no gráfico</div>
+          <div id="dash-sel-lista" style="display:flex;flex-direction:column;gap:2px;max-height:180px;overflow-y:auto;"></div>
+          <div style="border-top:0.5px solid var(--borda);margin-top:6px;padding-top:6px;display:flex;justify-content:space-between;align-items:center;">
+            <span onclick="marcarTodasContas()" style="font-size:11px;font-weight:500;color:var(--texto-2);cursor:pointer;padding:4px 6px;">Marcar todas</span>
+            <span onclick="toggleContasDropdown()" style="font-size:12px;font-weight:600;color:var(--verde);cursor:pointer;padding:4px 10px;">Confirmar</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -655,6 +673,11 @@
       <button onclick="navIr(null,'t-relat')" style="background:var(--branco);border:0.5px solid var(--borda);border-radius:var(--r-md);padding:14px;display:flex;align-items:center;gap:10px;cursor:pointer;font-family:'DM Sans',sans-serif;">
         <span style="font-size:22px;">📊</span>
         <div style="text-align:left;"><div style="font-size:13px;font-weight:500;color:var(--texto);">Relatórios</div><div style="font-size:11px;color:var(--texto-2);">Gastos por categoria</div></div>
+      </button>
+      <button onclick="navIr(null,'t-desafios')" style="grid-column:1/-1;background:var(--branco);border:0.5px solid var(--borda);border-radius:var(--r-md);padding:14px;display:flex;align-items:center;gap:10px;cursor:pointer;font-family:'DM Sans',sans-serif;">
+        <span style="font-size:22px;">🏆</span>
+        <div style="text-align:left;flex:1;"><div style="font-size:13px;font-weight:500;color:var(--texto);">Desafios da família</div><div style="font-size:11px;color:var(--texto-2);">Ganhe XP e medalhas economizando junto</div></div>
+        <span style="color:var(--texto-3);font-size:16px;">›</span>
       </button>
     </div>
 
@@ -720,6 +743,10 @@
       <div class="topbar-title">Novo lançamento</div>
       <div class="topbar-sub" id="l-sub"></div>
     </div>
+    <button class="btn-icon" id="l-cam-btn" onclick="document.getElementById('l-foto-input').click()" title="Fotografar recibo" style="flex-shrink:0;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3.5"/></svg>
+    </button>
+    <input type="file" id="l-foto-input" accept="image/*" capture="environment" style="display:none;" onchange="lancProcessarRecibo(event)">
   </div>
   <div class="scroll-body">
     <div id="l-toast-inline" style="display:none;padding:10px 14px;border-radius:var(--r-sm);font-size:13px;font-weight:500;"></div>
@@ -732,7 +759,7 @@
     <div class="field">
       <label>Valor</label>
       <div class="val-row">
-        <div class="val-prefix">R$</div>
+        <div class="val-prefix" id="l-val-prefix">R$</div>
         <input class="val-input" type="number" id="l-val" placeholder="0,00" min="0" step="0.01">
         <button onclick="ajustarValor(-1)" style="width:40px;height:44px;border:none;background:transparent;font-size:22px;color:var(--coral-600);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-left:0.5px solid var(--borda);">−</button>
         <button onclick="ajustarValor(1)"  style="width:40px;height:44px;border:none;background:transparent;font-size:22px;color:var(--verde-600);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-left:0.5px solid var(--borda);">+</button>
@@ -806,6 +833,24 @@
       <div class="topbar-title">Assistente Fin</div>
       <div class="topbar-sub">Consultor financeiro com IA</div>
     </div>
+  </div>
+
+  <!-- sinal de IA -->
+  <div style="flex-shrink:0;background:var(--branco);border-bottom:0.5px solid var(--borda);padding:9px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;" onclick="toggleSinalIADetalhes()">
+    <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+      <span id="ia-dot" style="width:9px;height:9px;border-radius:50%;background:var(--cinza-200);flex-shrink:0;"></span>
+      <div style="min-width:0;">
+        <div style="font-size:12px;font-weight:600;color:var(--texto);">Sinal de IA: Fin</div>
+        <div style="font-size:10px;color:var(--texto-3);" id="ia-status-txt">Verificando…</div>
+      </div>
+    </div>
+    <div style="font-size:10px;font-weight:600;color:var(--texto-2);background:var(--cinza-100);border-radius:20px;padding:4px 10px;flex-shrink:0;" id="ia-consumo-pill">— hoje</div>
+  </div>
+  <div id="ia-detalhes" style="display:none;flex-shrink:0;background:var(--cinza-100);border-bottom:0.5px solid var(--borda);padding:10px 16px;font-size:11px;color:var(--texto-2);flex-direction:column;gap:4px;">
+    <div style="display:flex;justify-content:space-between;"><span>Mensagens hoje</span><span id="ia-msgs" style="font-weight:600;color:var(--texto);">0</span></div>
+    <div style="display:flex;justify-content:space-between;"><span>Tokens recebidos (entrada)</span><span id="ia-tok-in" style="font-weight:600;color:var(--texto);">0</span></div>
+    <div style="display:flex;justify-content:space-between;"><span>Tokens gerados (saída)</span><span id="ia-tok-out" style="font-weight:600;color:var(--texto);">0</span></div>
+    <div style="font-size:10px;color:var(--texto-3);margin-top:2px;">Contagem real, tirada da própria resposta da API a cada mensagem — zera todo dia.</div>
   </div>
 
   <!-- chat scrollável — ocupa todo espaço disponível -->
@@ -900,13 +945,26 @@
       </div>
     </div>
 
+    <!-- filtro por membro -->
+    <div class="card">
+      <div class="card-title">Membro</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;" id="r-membros"></div>
+    </div>
+
     <!-- filtro tipo -->
     <div class="card">
       <div class="card-title">Tipo de lançamento</div>
       <div class="tipo-tgl">
         <button class="tipo-btn s ativo" id="r-tb-s" onclick="rSetTipo('s')">↑ Saídas</button>
         <button class="tipo-btn e" id="r-tb-e" onclick="rSetTipo('e')">↓ Entradas</button>
+        <button class="tipo-btn" id="r-tb-a" onclick="rSetTipo('a')">↕ Ambos</button>
       </div>
+    </div>
+
+    <!-- filtro contas -->
+    <div class="card">
+      <div class="card-title">Contas <span style="color:var(--texto-3);font-size:11px;">(selecione uma ou mais)</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;" id="r-contas"></div>
     </div>
 
     <!-- filtro categorias -->
@@ -942,6 +1000,43 @@
         <div id="r-count" style="font-size:12px;color:var(--texto-3);"></div>
       </div>
       <div class="tx-list" id="r-lista"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     TELA — DESAFIOS (gamificação)
+══════════════════════════════════════ -->
+<div class="tela" id="t-desafios">
+  <div class="topbar">
+    <button class="btn-icon btn-back" onclick="ir('t-dash')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m7-7l-7 7 7 7"/></svg>
+    </button>
+    <div class="topbar-info">
+      <div class="topbar-title">Desafios</div>
+      <div class="topbar-sub">Economize em família, ganhe XP e medalhas</div>
+    </div>
+    <button class="btn-add" onclick="abrirModalDesafio()">+ Novo</button>
+  </div>
+  <div class="scroll-body">
+
+    <!-- ranking de XP -->
+    <div class="card">
+      <div class="card-title">Ranking da família</div>
+      <div style="display:flex;flex-direction:column;gap:2px;" id="ds-ranking"></div>
+    </div>
+
+    <!-- desafios ativos -->
+    <div>
+      <div class="sec-head"><div class="sec-title">Desafios ativos</div></div>
+      <div style="display:flex;flex-direction:column;gap:10px;" id="ds-ativos"></div>
+    </div>
+
+    <!-- conquistas -->
+    <div>
+      <div class="sec-head"><div class="sec-title">Medalhas conquistadas</div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;" id="ds-conquistas"></div>
     </div>
 
   </div>
@@ -1222,7 +1317,37 @@
         <option>Investimento</option><option>Outro</option>
       </select>
     </div>
-    <div class="field"><label>Saldo inicial (R$)</label><input type="number" id="mo-saldo" placeholder="0,00" min="0" step="0.01"></div>
+    <div class="field"><label>Moeda</label>
+      <select id="mo-moeda" onchange="moedaMudou()">
+        <option value="BRL">Real (R$)</option>
+        <option value="USD">Dólar (US$)</option>
+        <option value="EUR">Euro (€)</option>
+        <option value="custom">Outra moeda...</option>
+      </select>
+    </div>
+    <div class="field" id="mo-moeda-custom-wrap" style="display:none;">
+      <label>Qual moeda? (símbolo ou código)</label>
+      <input type="text" id="mo-moeda-custom" placeholder="Ex: £, GBP, BTC" oninput="moedaMudou()">
+    </div>
+    <div class="field"><label id="mo-saldo-label">Saldo inicial (R$)</label><input type="number" id="mo-saldo" placeholder="0,00" min="0" step="0.01"></div>
+    <div class="rec-row">
+      <div>
+        <div class="rec-lbl">Conta conjunta</div>
+        <div class="rec-sub">Aparece e soma no saldo de todos os membros</div>
+      </div>
+      <button class="tgl" id="mo-conjunta" onclick="this.classList.toggle('on')" aria-label="Conta conjunta">
+        <div class="tgl-k"></div>
+      </button>
+    </div>
+    <div class="rec-row">
+      <div>
+        <div class="rec-lbl">Inativa</div>
+        <div class="rec-sub">Some dos totais e cálculos, mas fica no histórico</div>
+      </div>
+      <button class="tgl" id="mo-inativa" onclick="this.classList.toggle('on')" aria-label="Conta inativa">
+        <div class="tgl-k"></div>
+      </button>
+    </div>
     <div class="field">
       <label>Ícone</label>
       <div class="icon-grid" id="mo-icons">
@@ -1282,6 +1407,50 @@
   </div>
 </div>
 
+<!-- modal desafio -->
+<div class="modal-over" id="mo-desafio" onclick="fecharModais(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Novo desafio</div>
+    <div class="field"><label>Título</label><input type="text" id="dm-titulo" placeholder="Ex: Fim de semana gasto zero"></div>
+    <div class="field"><label>Descrição</label><input type="text" id="dm-desc" placeholder="Ex: Evitar gastos não-essenciais no fds"></div>
+    <div class="field"><label>Prazo</label><input type="text" id="dm-prazo" placeholder="Ex: Até domingo, 30 dias, Fim do mês..."></div>
+    <div class="two-col">
+      <div class="field"><label>Meta (nº de dias, R$ ou vezes)</label><input type="number" id="dm-alvo" placeholder="Ex: 7" min="1"></div>
+      <div class="field"><label>Unidade</label>
+        <select id="dm-unidade">
+          <option value="dias">Dias</option>
+          <option value="reais">Reais economizados</option>
+          <option value="vezes">Vezes</option>
+        </select>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="field"><label>Responsável</label>
+        <select id="dm-membro"><option value="todos">Toda a família</option></select>
+      </div>
+      <div class="field"><label>XP de recompensa</label><input type="number" id="dm-xp" placeholder="100" value="100" min="10"></div>
+    </div>
+    <div class="field">
+      <label>Medalha (ícone)</label>
+      <div class="icon-grid">
+        <div class="ic-opt sel" data-ic="🏆" onclick="selIcoDesafio(this)">🏆</div>
+        <div class="ic-opt" data-ic="🥇" onclick="selIcoDesafio(this)">🥇</div>
+        <div class="ic-opt" data-ic="🚫" onclick="selIcoDesafio(this)">🚫</div>
+        <div class="ic-opt" data-ic="🐷" onclick="selIcoDesafio(this)">🐷</div>
+        <div class="ic-opt" data-ic="🔥" onclick="selIcoDesafio(this)">🔥</div>
+        <div class="ic-opt" data-ic="💎" onclick="selIcoDesafio(this)">💎</div>
+        <div class="ic-opt" data-ic="🛡️" onclick="selIcoDesafio(this)">🛡️</div>
+        <div class="ic-opt" data-ic="⭐" onclick="selIcoDesafio(this)">⭐</div>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-sec" style="flex:1;" onclick="fecharModais()">Cancelar</button>
+      <button class="btn-prim g" style="flex:2;" onclick="salvarDesafio()">Criar desafio</button>
+    </div>
+  </div>
+</div>
+
 <!-- toast global -->
 <div class="toast" id="toast">✓ <span id="toast-msg"></span></div>
 
@@ -1305,7 +1474,7 @@ function toast(msg, err=false) {
 // ── PERSISTÊNCIA ──
 function salvarDados() {
   try {
-    localStorage.setItem('ff_dados', JSON.stringify({ contas, transacoes, metas, categorias, membros, recorrentes }));
+    localStorage.setItem('ff_dados', JSON.stringify({ contas, transacoes, metas, categorias, membros, recorrentes, desafios, conquistas }));
   } catch(e) {}
 }
 
@@ -1319,6 +1488,8 @@ function carregarDados() {
       if(Array.isArray(d.categorias) && d.categorias.length) categorias = d.categorias;
       if(Array.isArray(d.membros) && d.membros.length) membros = d.membros;
       if(Array.isArray(d.recorrentes)) recorrentes = d.recorrentes;
+      if(Array.isArray(d.desafios))   desafios = d.desafios;
+      if(Array.isArray(d.conquistas)) conquistas = d.conquistas;
     }
   } catch(e) {}
 }
@@ -1329,6 +1500,8 @@ function resetarDados() {
   transacoes = [];
   metas = [];
   recorrentes = [];
+  desafios = [];
+  conquistas = [];
   membros = [{ id:'m'+Date.now(), nome: localStorage.getItem('ff_nome') || 'Eu', cor:CORES_MEMBRO[0][0], corTx:CORES_MEMBRO[0][1] }];
   titContasAtual = membros[0].id;
   dashMembro = 'familia';
@@ -1375,6 +1548,14 @@ let metas = [
   {id:3,nome:'Troca do carro',icon:'🚗',total:50000,atual:12000,prazo:'jun/2026'},
 ];
 
+let desafios = [
+  {id:1,titulo:'Fim de semana gasto zero',descricao:'Evitar gastos não-essenciais no sábado e domingo',alvo:2,atual:1,unidade:'dias',membroId:'todos',xp:150,badgeIcon:'🚫',status:'ativo'},
+  {id:2,titulo:'Guardar R$500 esse mês',descricao:'Economia coletiva da família',alvo:500,atual:180,unidade:'reais',membroId:'todos',xp:200,badgeIcon:'🐷',status:'ativo'},
+];
+let conquistas = [
+  {id:1,desafioId:0,membroId:'ana',badgeIcon:'⭐',titulo:'Primeira semana sem cartão de crédito',xp:100,data:'2026-05-20'},
+];
+
 // ── MEMBROS DA FAMÍLIA (dinâmico) ──
 const CORES_MEMBRO = [
   ['#9FE1CB','#085041'], ['#B5D4F4','#0C447C'], ['#F4C0D1','#72243E'],
@@ -1416,6 +1597,8 @@ function excluirMembro(id) {
   membros = membros.filter(x=>x.id!==id);
   contas = contas.filter(c=>c.titular!==id);
   transacoes = transacoes.filter(t=>t.titular!==id);
+  desafios = desafios.filter(d=>d.membroId!==id);
+  conquistas = conquistas.filter(c=>c.membroId!==id);
   if(titContasAtual===id) titContasAtual = membros[0].id;
   if(dashMembro===id) dashMembro = 'familia';
   renderPerfil(); renderMembrosChips(); renderDash(); renderContas();
@@ -1453,6 +1636,21 @@ function editarChaveAPI() {
 
 let pizzaChart, lineChart;
 let dashMembro = 'familia';
+let saldoOculto = localStorage.getItem('ff_saldo_oculto') === 'true';
+
+function toggleSaldoOculto() {
+  saldoOculto = !saldoOculto;
+  localStorage.setItem('ff_saldo_oculto', saldoOculto ? 'true' : 'false');
+  document.getElementById('d-eye-btn').innerHTML = iconeOlho(saldoOculto);
+  renderDash();
+}
+function iconeOlho(oculto) {
+  return oculto
+    ? '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c6.5 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.53 13.53 0 0 0 2 12s3.5 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>'
+    : '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+}
+function money0(v) { return saldoOculto ? 'R$ ••••' : 'R$ '+fmt0(v); }
+function money(v)  { return saldoOculto ? 'R$ ••••' : 'R$ '+fmt(v); }
 let lancTipo = 'e';
 let lancConta = null;
 let contaEditId = null;
@@ -1469,8 +1667,9 @@ function ir(tela) {
   if(tela==='t-metas') renderMetas();
   if(tela==='t-invest2') initInvest2();
   if(tela==='t-perfil') renderPerfil();
-  if(tela==='t-fin') initFin();
+  if(tela==='t-fin') { initFin(); renderSinalIA(); }
   if(tela==='t-relat') initRelatorio();
+  if(tela==='t-desafios') renderDesafios();
 }
 function navIr(el, tela) {
   document.querySelectorAll('.nav-it').forEach(b=>b.classList.remove('ativo'));
@@ -1525,6 +1724,8 @@ function dashFiltrar(el) {
   document.querySelectorAll('#d-members .m-chip').forEach(b=>b.classList.remove('ativo'));
   el.classList.add('ativo');
   dashMembro = el.dataset.m;
+  const p = document.getElementById('dash-sel-panel');
+  if(p) { p.style.display='none'; document.getElementById('dash-sel-seta').style.transform=''; }
   renderDash();
 }
 
@@ -1534,15 +1735,15 @@ function renderDash() {
   const labelNome = m==='familia' ? 'da família' : `de ${memb ? memb.nome : ''}`;
 
   // dados reais — privacidade: na visão família, contas privadas ficam ocultas
-  const cs = m==='familia' ? contas.filter(c=>c.pub) : contas.filter(c=>c.titular===m);
+  const cs = m==='familia' ? contas.filter(c=>c.pub && !c.inativa) : contas.filter(c=>(c.titular===m || c.titular==='familia') && !c.inativa);
   const contasPrivadas = new Set(contas.filter(c=>!c.pub).map(c=>c.titular+'|'+c.nome));
   const txs = transacoes.filter(t => {
     if(m==='familia') return !contasPrivadas.has(t.titular+'|'+t.conta);
     return t.titular===m || t.titular==='familia';
   });
 
-  // saldo real das contas
-  const saldo = cs.reduce((s,c)=>s+c.saldo,0);
+  // saldo real das contas (convertido pra reais, pra somar moedas diferentes corretamente)
+  const saldo = cs.reduce((s,c)=>s+saldoEmReais(c),0);
 
   // entradas e saídas do mês atual
   const hoje = new Date();
@@ -1554,22 +1755,26 @@ function renderDash() {
   const mesNome = hoje.toLocaleDateString('pt-BR',{month:'long'});
 
   document.getElementById('d-hero-label').textContent = `Saldo total ${labelNome}`;
-  document.getElementById('d-hero-val').textContent = 'R$ '+fmt0(saldo);
-  document.getElementById('d-ent').textContent = 'R$ '+fmt0(ent);
-  document.getElementById('d-sai').textContent = 'R$ '+fmt0(sai);
+  document.getElementById('d-hero-val').textContent = money0(saldo);
+  document.getElementById('d-ent').textContent = money0(ent);
+  document.getElementById('d-sai').textContent = money0(sai);
   document.getElementById('d-qnt').textContent = cs.length;
   document.getElementById('d-pizza-title').textContent = `Distribuição — ${m==='familia'?'família':(memb?memb.nome:'')}`;
-  document.getElementById('pc-label').textContent = 'total';
-  document.getElementById('pc-val').textContent = 'R$ '+fmt0(saldo);
 
-  // pizza com contas reais
+  // pizza com contas reais — respeita a seleção de contas do usuário (não afeta os totais acima)
+  const deselecionadas = contasDeselecionadas(m);
+  const csPizza = cs.filter(c => !deselecionadas.includes(c.id));
+  const totalPizza = csPizza.reduce((s,c)=>s+saldoEmReais(c),0);
+  document.getElementById('pc-label').textContent = 'total';
+  document.getElementById('pc-val').textContent = money0(totalPizza);
   const coresPizza = ['#1D9E75','#5DCAA5','#378ADD','#85B7EB','#D4537E','#EF9F27','#B4B2A9','#9F7AEA'];
-  const slices = cs.filter(c=>c.saldo>0).map((c,i)=>({
+  const slices = csPizza.filter(c=>saldoEmReais(c)>0).map((c,i)=>({
     nome: m==='familia' ? `${nomeMembro(c.titular)} · ${c.nome}` : c.nome,
-    val: c.saldo,
+    val: saldoEmReais(c),
     cor: coresPizza[i % coresPizza.length]
   }));
-  renderPizza(slices, saldo || 1);
+  renderPizza(slices, totalPizza || 1);
+  renderSelecaoContas(m, cs, deselecionadas);
 
   // linha: progressão acumulada do mês atual
   const dias = hoje.getDate();
@@ -1582,6 +1787,48 @@ function renderDash() {
   }
   renderLine(lineE, lineS);
   renderDashTx();
+}
+
+// contas que o usuário desmarcou do gráfico de pizza — por padrão, tudo aparece.
+// guardamos as EXCLUÍDAS (e não as selecionadas) para que contas novas já apareçam automaticamente.
+function contasDeselecionadas(m) {
+  try { return JSON.parse(localStorage.getItem('ff_pizza_desel_'+m)) || []; } catch(e){ return []; }
+}
+
+function toggleContasDropdown() {
+  const p = document.getElementById('dash-sel-panel');
+  const aberto = p.style.display === 'block';
+  p.style.display = aberto ? 'none' : 'block';
+  document.getElementById('dash-sel-seta').style.transform = aberto ? '' : 'rotate(180deg)';
+}
+
+function toggleContaSelecionada(id) {
+  const m = dashMembro;
+  let desel = contasDeselecionadas(m);
+  if(desel.includes(id)) desel = desel.filter(x=>x!==id);
+  else desel = [...desel, id];
+  localStorage.setItem('ff_pizza_desel_'+m, JSON.stringify(desel));
+  renderDash();
+}
+
+function marcarTodasContas() {
+  localStorage.setItem('ff_pizza_desel_'+dashMembro, JSON.stringify([]));
+  renderDash();
+}
+
+function renderSelecaoContas(m, cs, deselecionadas) {
+  const selecionadasCount = cs.length - cs.filter(c=>deselecionadas.includes(c.id)).length;
+  document.getElementById('dash-sel-label').textContent = `👛 Contas selecionadas (${selecionadasCount}/${cs.length})`;
+  const lista = document.getElementById('dash-sel-lista');
+  if(!cs.length) { lista.innerHTML = '<div style="font-size:12px;color:var(--texto-3);padding:8px 6px;">Nenhuma conta ainda.</div>'; return; }
+  lista.innerHTML = cs.map(c => {
+    const marcada = !deselecionadas.includes(c.id);
+    return `<div onclick="toggleContaSelecionada(${c.id})" style="display:flex;align-items:center;gap:8px;padding:7px 6px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:500;" onmouseover="this.style.background='var(--cinza-100)'" onmouseout="this.style.background='transparent'">
+      <div style="width:16px;height:16px;border-radius:5px;border:1.5px solid ${marcada?'var(--verde)':'var(--cinza-200)'};background:${marcada?'var(--verde)':'var(--branco)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:10px;">${marcada?'✓':''}</div>
+      <span style="flex:1;">${c.icon} ${c.nome}${c.titular==='familia'?' 👨‍👩‍👧':''}</span>
+      <span style="font-size:11px;color:var(--texto-3);">${simboloMoeda(c)} ${fmt0(c.saldo)}</span>
+    </div>`;
+  }).join('');
 }
 
 function renderPizza(slices, total) {
@@ -1600,7 +1847,7 @@ function renderPizza(slices, total) {
     <div class="p-leg" onclick="pizzaFoco('${s.nome}',${s.val},${total})">
       <div class="p-dot" style="background:${s.cor}"></div>
       <div class="p-nome">${s.nome}</div>
-      <div class="p-val">R$ ${fmt0(s.val)}</div>
+      <div class="p-val">${money0(s.val)}</div>
       <div class="p-pct">${Math.round(s.val/total*100)}%</div>
     </div>`).join('');
 
@@ -1627,7 +1874,7 @@ function renderPizza(slices, total) {
 
 function pizzaFoco(nome,val,total) {
   document.getElementById('pc-label').textContent = nome.split('·').pop().trim()||nome;
-  document.getElementById('pc-val').textContent = 'R$ '+fmt0(val);
+  document.getElementById('pc-val').textContent = money0(val);
 }
 
 function renderLine(lineE, lineS) {
@@ -1705,13 +1952,15 @@ function renderContas() {
   document.getElementById('av-sig').style.color = m.corTx;
   document.getElementById('av-nome').textContent = m.nome;
 
-  const cs = contas.filter(c=>c.titular===titContasAtual);
-  const saldo = cs.reduce((s,c)=>s+c.saldo,0);
+  const todasDoMembro = contas.filter(c=>c.titular===titContasAtual || c.titular==='familia');
+  const cs = todasDoMembro.filter(c=>!c.inativa);
+  const arquivadas = todasDoMembro.filter(c=>c.inativa);
+  const saldo = cs.reduce((s,c)=>s+saldoEmReais(c),0);
 
   // entradas e saídas reais do mês atual
   const hoje = new Date();
   const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
-  const txsMes = transacoes.filter(t=>t.titular===titContasAtual && t.data.startsWith(mesAtual));
+  const txsMes = transacoes.filter(t=>(t.titular===titContasAtual || t.titular==='familia') && t.data.startsWith(mesAtual));
   const ent = txsMes.filter(t=>t.tipo==='e').reduce((s,t)=>s+t.val,0);
   const sai = txsMes.filter(t=>t.tipo==='s').reduce((s,t)=>s+t.val,0);
 
@@ -1721,33 +1970,51 @@ function renderContas() {
   document.getElementById('c-sai').textContent = 'R$ '+fmt0(sai);
   document.getElementById('c-qnt').textContent = cs.length;
 
-  const lista = document.getElementById('c-lista');
-  if(!cs.length){ lista.innerHTML='<div class="empty"><div class="empty-ico">💳</div><p>Nenhuma conta. Crie uma acima.</p></div>'; return; }
-  lista.innerHTML = cs.map(c=>`
+  const contaCardHtml = c => `
     <div class="conta-card" id="cc-${c.id}">
       <div class="conta-head" onclick="toggleAcoes(${c.id})">
         <div class="conta-ico" style="background:${c.cor}">${c.icon}</div>
         <div style="flex:1;">
-          <div class="conta-nome-txt">${c.nome}</div>
+          <div class="conta-nome-txt">${c.nome}${c.titular==='familia'?' <span style="font-size:10px;font-weight:500;color:var(--azul-600);background:var(--azul-100);padding:1px 7px;border-radius:8px;margin-left:4px;">👨‍👩‍👧 Conjunta</span>':''}</div>
           <div class="conta-tipo-txt">${c.tipo}</div>
         </div>
         <div>
-          <div class="conta-saldo-txt">R$ ${fmt(c.saldo)}</div>
+          <div class="conta-saldo-txt">${simboloMoeda(c)} ${fmt(c.saldo)}</div>
           <div class="conta-visib ${c.pub?'pub':'priv'}">${c.pub?'👁 Visível':'🔒 Privada'}</div>
         </div>
       </div>
       <div class="conta-acoes" id="ca-${c.id}">
         <div class="ag">
-          <button class="ab prim" onclick="editarConta(${c.id})">✏️ Renomear</button>
+          <button class="ab prim" onclick="editarConta(${c.id})">✏️ Editar</button>
           <button class="ab" onclick="verLanc(${c.id})">📋 Lançamentos</button>
         </div>
         <div class="visib-row">
           <span class="visib-lbl">${c.pub?'Pública':'Privada'}</span>
           <button class="tgl ${c.pub?'on':''}" onclick="togVisib(${c.id})" aria-label="Visibilidade"><div class="tgl-k"></div></button>
         </div>
-        <div class="ag"><button class="ab danger" onclick="excluirConta(${c.id})">🗑 Excluir</button></div>
+        <div class="ag">
+          ${c.inativa
+            ? `<button class="ab prim" onclick="desarquivarConta(${c.id})">♻️ Reativar</button>`
+            : `<button class="ab" onclick="arquivarConta(${c.id})">📦 Arquivar</button>`}
+          <button class="ab danger" onclick="excluirConta(${c.id})">🗑 Excluir</button>
+        </div>
       </div>
-    </div>`).join('');
+    </div>`;
+
+  const lista = document.getElementById('c-lista');
+  if(!cs.length && !arquivadas.length){ lista.innerHTML='<div class="empty"><div class="empty-ico">💳</div><p>Nenhuma conta. Crie uma acima.</p></div>'; return; }
+  let html = cs.length ? cs.map(contaCardHtml).join('') : '<div class="empty" style="padding:20px;"><p style="font-size:12px;">Nenhuma conta ativa.</p></div>';
+  if(arquivadas.length) {
+    html += `<div style="margin-top:6px;">
+      <div style="font-size:12px;color:var(--texto-2);cursor:pointer;display:flex;align-items:center;gap:5px;padding:6px 2px;" onclick="document.getElementById('c-arquivadas').classList.toggle('open')">
+        📦 Contas arquivadas (${arquivadas.length}) <span style="color:var(--texto-3);">— toque para ver</span>
+      </div>
+      <div id="c-arquivadas" class="conta-acoes" style="flex-direction:column;gap:10px;padding:4px 0 0;background:transparent;border:none;">
+        ${arquivadas.map(contaCardHtml).join('')}
+      </div>
+    </div>`;
+  }
+  lista.innerHTML = html;
 }
 
 function toggleAcoes(id) {
@@ -1789,16 +2056,25 @@ function abrirModalConta(editId=null) {
     const c = contas.find(c=>c.id===editId);
     document.getElementById('mo-nome').value = c.nome;
     document.getElementById('mo-tipo').value = c.tipo;
+    document.getElementById('mo-moeda').value = c.moeda || 'BRL';
+    document.getElementById('mo-moeda-custom').value = c.moedaSimbolo || '';
     document.getElementById('mo-saldo').value = c.saldo;
+    document.getElementById('mo-conjunta').classList.toggle('on', c.titular==='familia');
+    document.getElementById('mo-inativa').classList.toggle('on', !!c.inativa);
     icoContaSel = c.icon;
     document.querySelectorAll('#mo-icons .ic-opt').forEach(o=>o.classList.toggle('sel',o.dataset.ic===c.icon));
   } else {
     document.getElementById('mo-nome').value='';
     document.getElementById('mo-tipo').value='';
+    document.getElementById('mo-moeda').value='BRL';
+    document.getElementById('mo-moeda-custom').value='';
     document.getElementById('mo-saldo').value='';
+    document.getElementById('mo-conjunta').classList.remove('on');
+    document.getElementById('mo-inativa').classList.remove('on');
     icoContaSel='💳';
     document.querySelectorAll('#mo-icons .ic-opt').forEach((o,i)=>o.classList.toggle('sel',i===0));
   }
+  moedaMudou();
   mo.classList.add('open');
 }
 
@@ -1806,21 +2082,67 @@ function editarConta(id) { abrirModalConta(id); }
 
 const CORES_CONTA = ['#E1F5EE','#E6F1FB','#FAEEDA','#FAECE7','#FBEAF0','#EAF3DE','#EEEDFE'];
 
+// ── MOEDAS ──
+// Taxas aproximadas fixas (não são cotação em tempo real — dá pra ajustar aqui se ficarem desatualizadas)
+const TAXAS_CONVERSAO = { BRL:1, USD:5.46, EUR:5.85 };
+
+function simboloMoeda(c) {
+  if(!c.moeda || c.moeda==='BRL') return 'R$';
+  if(c.moeda==='USD') return 'US$';
+  if(c.moeda==='EUR') return '€';
+  return c.moedaSimbolo || c.moeda;
+}
+// converte o saldo da conta pra reais, pra poder somar com outras contas nos totais
+function saldoEmReais(c) {
+  if(!c.moeda || c.moeda==='BRL') return c.saldo;
+  const taxa = TAXAS_CONVERSAO[c.moeda];
+  return taxa ? c.saldo * taxa : c.saldo; // moeda customizada sem taxa conhecida: soma pelo valor de face
+}
+function moedaMudou() {
+  const m = document.getElementById('mo-moeda').value;
+  document.getElementById('mo-moeda-custom-wrap').style.display = m==='custom' ? 'block' : 'none';
+  const simb = m==='BRL' ? 'R$' : m==='USD' ? 'US$' : m==='EUR' ? '€' : (document.getElementById('mo-moeda-custom').value || 'moeda');
+  document.getElementById('mo-saldo-label').textContent = `Saldo inicial (${simb})`;
+}
+
 function salvarConta() {
   const nome = document.getElementById('mo-nome').value.trim();
   const tipo = document.getElementById('mo-tipo').value;
+  const moeda = document.getElementById('mo-moeda').value;
+  const moedaSimbolo = document.getElementById('mo-moeda-custom').value.trim();
   const saldo= parseFloat(document.getElementById('mo-saldo').value)||0;
+  const conjunta = document.getElementById('mo-conjunta').classList.contains('on');
+  const inativa = document.getElementById('mo-inativa').classList.contains('on');
   if(!nome){ toast('Digite um nome para a conta.', true); return; }
+  if(moeda==='custom' && !moedaSimbolo){ toast('Digite o símbolo ou código da moeda.', true); return; }
   if(contaEditId) {
     const c = contas.find(c=>c.id===contaEditId);
-    c.nome=nome; c.tipo=tipo||c.tipo; c.saldo=saldo; c.icon=icoContaSel;
+    c.nome=nome; c.tipo=tipo||c.tipo; c.saldo=saldo; c.icon=icoContaSel; c.moeda=moeda; c.moedaSimbolo=moeda==='custom'?moedaSimbolo:null; c.inativa=inativa;
+    if(!c.criadorId) c.criadorId = c.titular!=='familia' ? c.titular : titContasAtual;
+    c.titular = conjunta ? 'familia' : c.criadorId;
     toast(`Conta "${nome}" atualizada`);
   } else {
-    contas.push({id:Date.now(),nome,tipo:tipo||'Outro',saldo,icon:icoContaSel,pub:true,cor:CORES_CONTA[contas.length%CORES_CONTA.length],titular:titContasAtual});
+    contas.push({id:Date.now(),nome,tipo:tipo||'Outro',saldo,icon:icoContaSel,pub:true,cor:CORES_CONTA[contas.length%CORES_CONTA.length],titular:conjunta?'familia':titContasAtual,criadorId:titContasAtual,inativa,moeda,moedaSimbolo:moeda==='custom'?moedaSimbolo:null});
     toast(`Conta "${nome}" criada!`);
   }
   fecharModais();
   renderContas();
+}
+
+function arquivarConta(id) {
+  const c = contas.find(c=>c.id===id);
+  if(!c) return;
+  c.inativa = true;
+  renderContas();
+  toast(`"${c.nome}" arquivada. Ela sai dos totais, mas o histórico continua salvo.`);
+}
+
+function desarquivarConta(id) {
+  const c = contas.find(c=>c.id===id);
+  if(!c) return;
+  c.inativa = false;
+  renderContas();
+  toast(`"${c.nome}" reativada.`);
 }
 
 function selIco(el) {
@@ -1873,7 +2195,7 @@ function setTipo(t) {
 }
 
 function renderLancContas() {
-  const cs = contas;
+  const cs = contas.filter(c=>!c.inativa);
   const el = document.getElementById('l-contas');
 
   if(!cs.length) {
@@ -1892,8 +2214,10 @@ function renderLancContas() {
       <div class="cc-ico">${c.icon}</div>
       <div class="cc-nome">${c.nome}</div>
       <div class="cc-val" style="font-size:10px;color:var(--texto-2);">${nomeMembro(c.titular)}</div>
-      <div style="font-size:10px;font-weight:500;color:${c.id===lancConta?'var(--verde-600)':'var(--texto-3)'};">R$ ${fmt0(c.saldo)}</div>
+      <div style="font-size:10px;font-weight:500;color:${c.id===lancConta?'var(--verde-600)':'var(--texto-3)'};">${simboloMoeda(c)} ${fmt0(c.saldo)}</div>
     </div>`).join('');
+  const contaAtual = cs.find(c=>c.id===lancConta);
+  if(contaAtual) document.getElementById('l-val-prefix').textContent = simboloMoeda(contaAtual);
 }
 
 function selConta(el, id) {
@@ -1909,9 +2233,78 @@ function selConta(el, id) {
       valEl.style.color = isSelected ? 'var(--verde-600)' : 'var(--texto-3)';
     }
   });
+  const contaSel = contas.find(c=>c.id===id);
+  if(contaSel) document.getElementById('l-val-prefix').textContent = simboloMoeda(contaSel);
 }
 
 let recorrentes = []; // lançamentos que se repetem todo mês
+
+// ── FOTOGRAFAR RECIBO (leitura por IA) ──
+function lancProcessarRecibo(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const apiKey = getApiKey();
+  if(!apiKey) { toast('Configure a chave da API em Perfil pra usar a leitura de recibo.', true); event.target.value=''; return; }
+
+  const btn = document.getElementById('l-cam-btn');
+  const iconeOriginal = btn.innerHTML;
+  btn.innerHTML = '<div style="width:14px;height:14px;border-radius:50%;border:2px solid var(--verde);border-top-color:transparent;animation:girar 0.7s linear infinite;"></div>';
+  btn.style.pointerEvents = 'none';
+
+  const reader = new FileReader();
+  reader.onloadend = async () => {
+    const base64 = reader.result.split(',')[1];
+    try {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 400,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'image', source: { type: 'base64', media_type: file.type || 'image/jpeg', data: base64 } },
+              { type: 'text', text: `Extraia os dados deste recibo/nota fiscal e responda APENAS com um JSON válido, sem markdown, sem texto extra, no formato:
+{"tipo":"s","val":00.00,"desc":"nome do estabelecimento ou item principal","data":"AAAA-MM-DD","cat":"categoria"}
+
+Regras:
+- "tipo" é sempre "s" (saída), a menos que fique claríssimo que é um reembolso/estorno, aí use "e".
+- "val" é o valor TOTAL da compra, número puro (sem R$, sem separador de milhar).
+- "data" é a data da compra no recibo; se não achar, use ${new Date().toISOString().slice(0,10)}.
+- "cat" deve ser uma destas categorias, a que fizer mais sentido: ${categorias.join(', ')}. Se nenhuma encaixar bem, use "Outro".
+- Se a imagem não parecer um recibo/nota fiscal, responda {"erro":"não é um recibo"}.` }
+            ]
+          }]
+        })
+      });
+      const data = await resp.json();
+      if(data.error) { toast(`Erro da IA: ${data.error.message}`, true); return; }
+      const txt = (data?.content?.[0]?.text || '').trim().replace(/^```json\s*|```$/g,'').trim();
+      const res = JSON.parse(txt);
+      if(res.erro) { toast('Não consegui reconhecer um recibo nessa imagem. Preencha manualmente.', true); return; }
+
+      setTipo(res.tipo==='e' ? 'e' : 's');
+      document.getElementById('l-val').value = res.val || '';
+      document.getElementById('l-desc').value = res.desc || '';
+      document.getElementById('l-data').value = res.data || new Date().toISOString().slice(0,10);
+      document.getElementById('l-cat').value = categorias.includes(res.cat) ? res.cat : 'Outro';
+      toast('📸 Recibo lido! Confira os dados antes de registrar.');
+    } catch(e) {
+      toast('Não consegui ler o recibo. Tente uma foto mais nítida ou preencha manualmente.', true);
+    } finally {
+      btn.innerHTML = iconeOriginal;
+      btn.style.pointerEvents = '';
+      event.target.value = '';
+    }
+  };
+  reader.readAsDataURL(file);
+}
 
 function lancar() {
   const val  = parseFloat(document.getElementById('l-val').value);
@@ -2061,6 +2454,138 @@ function selIcoMeta(el) {
 }
 
 // ══════════════════════════
+// DESAFIOS (gamificação)
+// ══════════════════════════
+let icoDesafioSel = '🏆';
+let desafioEditId = null;
+
+function abrirModalDesafio() {
+  document.getElementById('dm-titulo').value = '';
+  document.getElementById('dm-desc').value = '';
+  document.getElementById('dm-prazo').value = '';
+  document.getElementById('dm-alvo').value = '';
+  document.getElementById('dm-unidade').value = 'dias';
+  document.getElementById('dm-xp').value = 100;
+  icoDesafioSel = '🏆';
+  document.querySelectorAll('#mo-desafio .ic-opt').forEach((o,i)=>o.classList.toggle('sel', i===0));
+  const sel = document.getElementById('dm-membro');
+  sel.innerHTML = '<option value="todos">Toda a família</option>' + membros.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
+  document.getElementById('mo-desafio').classList.add('open');
+}
+
+function selIcoDesafio(el) {
+  document.querySelectorAll('#mo-desafio .ic-opt').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel'); icoDesafioSel = el.dataset.ic;
+}
+
+function salvarDesafio() {
+  const titulo = document.getElementById('dm-titulo').value.trim();
+  const descricao = document.getElementById('dm-desc').value.trim();
+  const prazo = document.getElementById('dm-prazo').value.trim();
+  const alvo = parseInt(document.getElementById('dm-alvo').value);
+  const unidade = document.getElementById('dm-unidade').value;
+  const membroId = document.getElementById('dm-membro').value;
+  const xp = parseInt(document.getElementById('dm-xp').value) || 100;
+  if(!titulo) { toast('Digite um título para o desafio.', true); return; }
+  if(!alvo || alvo<=0) { toast('Digite uma meta válida (maior que zero).', true); return; }
+  desafios.push({ id:Date.now(), titulo, descricao, prazo, alvo, atual:0, unidade, membroId, xp, badgeIcon:icoDesafioSel, status:'ativo' });
+  fecharModais();
+  renderDesafios();
+  toast(`Desafio "${titulo}" criado!`);
+}
+
+function progredirDesafio(id) {
+  const d = desafios.find(d=>d.id===id);
+  if(!d || d.status!=='ativo') return;
+  if(d.unidade==='reais') {
+    const v = prompt(`Quanto vocês economizaram agora? (R$)`, '');
+    const val = parseFloat(v);
+    if(!val || val<=0) return;
+    d.atual += val;
+  } else {
+    d.atual += 1;
+  }
+  if(d.atual >= d.alvo) {
+    d.atual = d.alvo;
+    d.status = 'concluido';
+    conquistas.unshift({ id:Date.now(), desafioId:d.id, membroId:d.membroId, badgeIcon:d.badgeIcon, titulo:d.titulo, xp:d.xp, data:new Date().toISOString().slice(0,10) });
+    toast(`🎉 Desafio "${d.titulo}" concluído! +${d.xp} XP`);
+  } else {
+    toast('Progresso registrado!');
+  }
+  renderDesafios();
+}
+
+function excluirDesafio(id) {
+  const d = desafios.find(d=>d.id===id);
+  if(!d) return;
+  if(!confirm(`Excluir o desafio "${d.titulo}"?`)) return;
+  desafios = desafios.filter(x=>x.id!==id);
+  renderDesafios();
+  toast('Desafio removido.');
+}
+
+function unidadeLabel(u, v) {
+  if(u==='reais') return `R$ ${fmt0(v)}`;
+  if(u==='vezes') return `${v}x`;
+  return `${v} dia${v===1?'':'s'}`;
+}
+
+function renderDesafios() {
+  // ranking por XP (soma das conquistas por membro)
+  const xpPorMembro = {};
+  membros.forEach(m=>xpPorMembro[m.id]=0);
+  conquistas.forEach(c=>{
+    if(c.membroId==='todos') {
+      membros.forEach(m=>xpPorMembro[m.id]=(xpPorMembro[m.id]||0)+c.xp);
+    } else {
+      xpPorMembro[c.membroId] = (xpPorMembro[c.membroId]||0) + c.xp;
+    }
+  });
+  const ranking = membros.map(m=>({...m, xp:xpPorMembro[m.id]||0})).sort((a,b)=>b.xp-a.xp);
+  document.getElementById('ds-ranking').innerHTML = ranking.map((m,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 4px;${i<ranking.length-1?'border-bottom:0.5px solid var(--borda);':''}">
+      <div style="font-size:13px;color:var(--texto-3);width:16px;">${i+1}º</div>
+      <div style="width:28px;height:28px;border-radius:50%;background:${m.cor};color:${m.corTx};font-size:10px;font-weight:500;display:flex;align-items:center;justify-content:center;">${sigla(m.nome)}</div>
+      <div style="flex:1;font-size:13px;font-weight:500;">${m.nome}</div>
+      <div style="font-size:13px;font-weight:500;color:var(--verde-600);">${m.xp} XP</div>
+    </div>`).join('') || '<div class="empty" style="padding:16px;"><p style="font-size:12px;">Adicione membros no Perfil para começar.</p></div>';
+
+  // desafios ativos
+  const ativos = desafios.filter(d=>d.status==='ativo');
+  document.getElementById('ds-ativos').innerHTML = ativos.length ? ativos.map(d=>{
+    const pct = Math.min(100, Math.round(d.atual/d.alvo*100));
+    const resp = d.membroId==='todos' ? 'Toda a família' : nomeMembro(d.membroId);
+    return `
+    <div class="meta-card">
+      <div class="meta-head">
+        <span class="meta-ico">${d.badgeIcon}</span>
+        <div style="flex:1;">
+          <div class="meta-nome">${d.titulo}</div>
+          <div class="meta-prazo">${resp} · +${d.xp} XP${d.prazo?' · ⏱ '+d.prazo:''}${d.descricao?' · '+d.descricao:''}</div>
+        </div>
+        <button class="btn-icon" onclick="excluirDesafio(${d.id})" title="Excluir" style="width:28px;height:28px;flex-shrink:0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="meta-prog-bar"><div class="meta-prog-fill" style="width:${pct}%"></div></div>
+      <div class="meta-vals">
+        <span class="meta-atual">${unidadeLabel(d.unidade,d.atual)} de ${unidadeLabel(d.unidade,d.alvo)}</span>
+        <button class="btn-add" style="padding:4px 10px;" onclick="progredirDesafio(${d.id})">+ Progresso</button>
+      </div>
+    </div>`;
+  }).join('') : '<div class="empty"><div class="empty-ico">🏆</div><p>Nenhum desafio ativo. Crie um acima!</p></div>';
+
+  // conquistas / medalhas
+  document.getElementById('ds-conquistas').innerHTML = conquistas.length ? conquistas.map(c=>`
+    <div style="background:var(--branco);border:0.5px solid var(--borda);border-radius:var(--r-md);padding:12px;width:96px;text-align:center;">
+      <div style="font-size:28px;margin-bottom:4px;">${c.badgeIcon}</div>
+      <div style="font-size:10px;font-weight:500;line-height:1.3;">${c.titulo}</div>
+      <div style="font-size:9px;color:var(--texto-3);margin-top:2px;">+${c.xp} XP</div>
+    </div>`).join('') : '<div class="empty" style="padding:20px;"><p style="font-size:12px;">Complete desafios para ganhar medalhas aqui.</p></div>';
+}
+
+// ══════════════════════════
 // PERFIL
 // ══════════════════════════
 function renderPerfil() {
@@ -2086,7 +2611,7 @@ function renderPerfil() {
       <span style="font-size:18px;">🤖</span>
       <div style="flex:1;">
         <div style="font-size:13px;">Chave da API (Fin)</div>
-        <div style="font-size:11px;color:var(--texto-2);">${localStorage.getItem('ff_apikey') ? 'Configurada ✓ · toque para trocar' : 'Não configurada · toque para adicionar'}</div>
+        <div style="font-size:11px;color:var(--texto-2);">${localStorage.getItem('ff_apikey') ? `Configurada ✓ · ${usoFinHoje()} mensagem${usoFinHoje()===1?'':'s'} hoje` : 'Não configurada · toque para adicionar'}</div>
       </div>
       <span style="color:var(--texto-3);font-size:16px;">›</span>
     </div>`+
@@ -2115,8 +2640,8 @@ function renderPerfil() {
     `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;">
       <span style="font-size:18px;">🔜</span>
       <div style="flex:1;">
-        <div style="font-size:13px;color:var(--texto-3);">Em breve</div>
-        <div style="font-size:11px;color:var(--texto-3);">Notificações WhatsApp, temas e sincronização entre dispositivos</div>
+        <div style="font-size:13px;color:var(--texto-3);">Em breve: sincronização entre celulares</div>
+        <div style="font-size:11px;color:var(--texto-3);">Cada família terá uma chave de acesso compartilhada para todos os membros verem os mesmos dados, em qualquer aparelho. Também vêm por aí: notificações no WhatsApp e temas.</div>
       </div>
     </div>`;
 }
@@ -2482,6 +3007,8 @@ function initRelatorio() {
   document.getElementById('r-ate').value = hoje.toISOString().slice(0,10);
   rPeriodo('mes');
   rSetTipo('s');
+  renderMembroChipsRelat();
+  renderContaChipsRelat();
   renderCatChips();
 }
 
@@ -2502,6 +3029,34 @@ function rSetTipo(t) {
   rTipo = t;
   document.getElementById('r-tb-s').className = 'tipo-btn s' + (t==='s'?' ativo':'');
   document.getElementById('r-tb-e').className = 'tipo-btn e' + (t==='e'?' ativo':'');
+  document.getElementById('r-tb-a').className = 'tipo-btn' + (t==='a'?' ativo':'');
+}
+
+let rMembroSel = 'todos';
+function renderMembroChipsRelat() {
+  rMembroSel = 'todos';
+  const el = document.getElementById('r-membros');
+  el.innerHTML = `<button class="chip ativo" data-m="todos" onclick="toggleMembroRelat(this,'todos')">👨‍👩‍👧 Toda a família</button>` +
+    membros.map(m=>`<button class="chip" data-m="${m.id}" onclick="toggleMembroRelat(this,'${m.id}')">${m.nome}</button>`).join('');
+}
+function toggleMembroRelat(el, id) {
+  document.querySelectorAll('#r-membros .chip').forEach(b=>b.classList.remove('ativo'));
+  el.classList.add('ativo');
+  rMembroSel = id;
+}
+
+let rContasSel = [];
+function renderContaChipsRelat() {
+  const nomes = [...new Set(contas.map(c=>c.nome))];
+  rContasSel = [...nomes];
+  const el = document.getElementById('r-contas');
+  el.innerHTML = nomes.map(n=>`<button class="chip cat-chip ativo" data-conta="${n}" onclick="toggleContaChipRelat(this,'${n}')">${n}</button>`).join('') ||
+    '<div style="font-size:12px;color:var(--texto-3);">Nenhuma conta criada ainda.</div>';
+}
+function toggleContaChipRelat(el, nome) {
+  el.classList.toggle('ativo');
+  if(el.classList.contains('ativo')) { if(!rContasSel.includes(nome)) rContasSel.push(nome); }
+  else { rContasSel = rContasSel.filter(c=>c!==nome); }
 }
 
 function renderCatChips() {
@@ -2526,12 +3081,20 @@ function renderRelatorio() {
   const ate = document.getElementById('r-ate').value;
   if(!de||!ate){ toast('Selecione o período.', true); return; }
   if(!rCatsSel.length){ toast('Selecione ao menos uma categoria.', true); return; }
+  if(!rContasSel.length){ toast('Selecione ao menos uma conta.', true); return; }
+
+  // privacidade: na visão "toda a família", contas privadas de outros membros ficam de fora
+  const contasPrivadas = new Set(contas.filter(c=>!c.pub).map(c=>c.titular+'|'+c.nome));
 
   // filtra transações
   const txs = transacoes.filter(t => {
-    return t.tipo === rTipo &&
-      t.data >= de && t.data <= ate &&
-      rCatsSel.includes(t.cat);
+    if(rTipo!=='a' && t.tipo !== rTipo) return false;
+    if(t.data < de || t.data > ate) return false;
+    if(!rCatsSel.includes(t.cat)) return false;
+    if(!rContasSel.includes(t.conta)) return false;
+    if(rMembroSel==='todos') { if(contasPrivadas.has(t.titular+'|'+t.conta)) return false; }
+    else { if(t.titular!==rMembroSel && t.titular!=='familia') return false; }
+    return true;
   });
 
   if(!txs.length) {
@@ -2555,18 +3118,32 @@ function renderRelatorio() {
   const vals  = cats.map(c=>porCat[c]);
   const total = vals.reduce((s,v)=>s+v,0);
 
-  const label = rTipo==='s'?'Saídas':'Entradas';
-  const cor   = rTipo==='s'?'#D85A30':'#1D9E75';
-  const corBg = rTipo==='s'?'#FAECE7':'#E1F5EE';
+  const label = rTipo==='s' ? 'Saídas' : rTipo==='e' ? 'Entradas' : 'Movimentação';
+  const cor   = rTipo==='s' ? '#D85A30' : rTipo==='e' ? '#1D9E75' : '#378ADD';
+  const corBg = rTipo==='s' ? '#FAECE7' : rTipo==='e' ? '#E1F5EE' : '#E6F1FB';
 
   // totais
   document.getElementById('r-totais').style.display = 'block';
   document.getElementById('r-totais-title').textContent = `Resumo — ${label}`;
+  const statTotal = rTipo==='a'
+    ? (()=>{
+        const totEnt = txs.filter(t=>t.tipo==='e').reduce((s,t)=>s+t.val,0);
+        const totSai = txs.filter(t=>t.tipo==='s').reduce((s,t)=>s+t.val,0);
+        return `<div class="hero-stat" style="background:var(--verde-100);flex:1;">
+          <div class="hero-stat-label" style="color:var(--verde-600);opacity:1;">Entradas</div>
+          <div class="hero-stat-val" style="color:var(--verde-600);">R$ ${fmt0(totEnt)}</div>
+        </div>
+        <div class="hero-stat" style="background:#FAECE7;flex:1;">
+          <div class="hero-stat-label" style="color:#B24A26;opacity:1;">Saídas</div>
+          <div class="hero-stat-val" style="color:#B24A26;">R$ ${fmt0(totSai)}</div>
+        </div>`;
+      })()
+    : `<div class="hero-stat" style="background:${corBg};flex:1;">
+        <div class="hero-stat-label" style="color:${cor};opacity:1;">Total ${label}</div>
+        <div class="hero-stat-val" style="color:${cor};">R$ ${fmt(total)}</div>
+      </div>`;
   document.getElementById('r-totais-vals').innerHTML = `
-    <div class="hero-stat" style="background:${corBg};flex:1;">
-      <div class="hero-stat-label" style="color:${cor};opacity:1;">Total ${label}</div>
-      <div class="hero-stat-val" style="color:${cor};">R$ ${fmt(total)}</div>
-    </div>
+    ${statTotal}
     <div class="hero-stat" style="background:var(--cinza-100);flex:1;">
       <div class="hero-stat-label">Lançamentos</div>
       <div class="hero-stat-val">${txs.length}</div>
@@ -2737,7 +3314,7 @@ function abrirEditarLanc(id) {
   document.getElementById('ml-cat').value  = t.cat;
   // popula select de contas
   const sel = document.getElementById('ml-conta');
-  sel.innerHTML = contas.map(c=>`<option value="${c.id}" ${c.nome===t.conta&&c.titular===t.titular?'selected':''}>${c.nome} (${nomeMembro(c.titular)}) — R$ ${fmt0(c.saldo)}</option>`).join('');
+  sel.innerHTML = contas.map(c=>`<option value="${c.id}" ${c.nome===t.conta&&c.titular===t.titular?'selected':''}>${c.nome} (${nomeMembro(c.titular)}) — ${simboloMoeda(c)} ${fmt0(c.saldo)}</option>`).join('');
   document.getElementById('mo-lanc').classList.add('open');
 }
 
@@ -2868,8 +3445,9 @@ let recognition = null;
 function finContexto() {
   const totalSaidas   = transacoes.filter(t=>t.tipo==='s').reduce((s,t)=>s+t.val,0);
   const totalEntradas = transacoes.filter(t=>t.tipo==='e').reduce((s,t)=>s+t.val,0);
-  const saldoTotal    = contas.reduce((s,c)=>s+c.saldo,0);
-  const contasResumo  = contas.map(c=>`${c.nome} (${c.titular}): R$ ${fmt(c.saldo)}`).join('\n');
+  const contasAtivas  = contas.filter(c=>!c.inativa);
+  const saldoTotal    = contasAtivas.reduce((s,c)=>s+saldoEmReais(c),0);
+  const contasResumo  = contasAtivas.map(c=>`${c.nome} (${c.titular==='familia'?'conjunta':c.titular}): ${simboloMoeda(c)} ${fmt(c.saldo)}`).join('\n');
   const txResumo      = transacoes.slice(0,10).map(t=>`${t.tipo==='e'?'Entrada':'Saída'}: R$ ${fmt(t.val)} — ${t.desc} (${t.conta}, ${t.data}, ${t.cat})`).join('\n');
   const metasResumo   = metas.map(m=>`${m.nome}: R$ ${fmt0(m.atual)} de R$ ${fmt0(m.total)} — prazo ${m.prazo}`).join('\n');
   return `Você é o Fin, assistente financeiro do app FinFamília. Responda sempre em português brasileiro, de forma direta e amigável. Use os dados abaixo para responder. Nunca invente números.
@@ -2930,6 +3508,7 @@ async function finEnviar() {
   const apiKey = getApiKey();
   if(!apiKey) {
     finMsgAdd('Fin', '⚠️ Chave da API não configurada. Vá em Perfil → Chave da API (Fin) para configurar.', false);
+    renderSinalIA();
     return;
   }
 
@@ -2974,6 +3553,8 @@ async function finEnviar() {
       loadWrap.remove();
       finMsgAdd('Fin', `⚠️ Erro da API: ${data.error.message}`, false);
       inp.disabled = false;
+      iaUltimoStatus = 'erro';
+      renderSinalIA();
       return;
     }
 
@@ -2983,9 +3564,16 @@ async function finEnviar() {
     finHistorico.push({ role:'assistant', content:resposta });
     if(finHistorico.length > 20) finHistorico = finHistorico.slice(-20);
 
+    // consumo REAL de tokens, direto da resposta da API (não é estimativa)
+    registrarUsoFin(data?.usage?.input_tokens || 0, data?.usage?.output_tokens || 0);
+    iaUltimoStatus = 'ok';
+    renderSinalIA();
+
   } catch(e) {
     loadWrap.remove();
     finMsgAdd('Fin', `⚠️ Erro de conexão: ${e.message}. Verifique sua internet e tente novamente.`, false);
+    iaUltimoStatus = 'erro';
+    renderSinalIA();
   }
 
   inp.disabled = false;
@@ -3136,6 +3724,61 @@ function getApiKey() {
   return localStorage.getItem('ff_apikey') || '';
 }
 
+// contador local de mensagens ao Fin — não é a cota real da API (isso a Anthropic não expõe
+// para chamadas feitas direto do navegador), é só quantas mensagens você mandou hoje.
+function registrarUsoFin(tokIn, tokOut) {
+  const hoje = new Date().toISOString().slice(0,10);
+  let u = {};
+  try { u = JSON.parse(localStorage.getItem('ff_fin_uso')) || {}; } catch(e){}
+  if(u.dia !== hoje) u = { dia: hoje, count: 0, tokIn: 0, tokOut: 0 };
+  u.count = (u.count||0) + 1;
+  u.tokIn  = (u.tokIn||0)  + (tokIn||0);
+  u.tokOut = (u.tokOut||0) + (tokOut||0);
+  localStorage.setItem('ff_fin_uso', JSON.stringify(u));
+}
+
+function usoFinHoje() {
+  const hoje = new Date().toISOString().slice(0,10);
+  try {
+    const u = JSON.parse(localStorage.getItem('ff_fin_uso'));
+    if(u && u.dia === hoje) return u.count || 0;
+  } catch(e){}
+  return 0;
+}
+
+function statusUsoFinHoje() {
+  const hoje = new Date().toISOString().slice(0,10);
+  try {
+    const u = JSON.parse(localStorage.getItem('ff_fin_uso'));
+    if(u && u.dia === hoje) return { count:u.count||0, tokIn:u.tokIn||0, tokOut:u.tokOut||0 };
+  } catch(e){}
+  return { count:0, tokIn:0, tokOut:0 };
+}
+
+// dot verde = conectado e funcionando · cinza = sem chave · vermelho = erro na última chamada
+let iaUltimoStatus = 'idle';
+function toggleSinalIADetalhes() {
+  const el = document.getElementById('ia-detalhes');
+  el.style.display = el.style.display==='flex' ? 'none' : 'flex';
+}
+function renderSinalIA() {
+  const dot = document.getElementById('ia-dot');
+  const txt = document.getElementById('ia-status-txt');
+  const temChave = !!getApiKey();
+  let cor = 'var(--cinza-200)', msg = 'Chave não configurada';
+  if(temChave) {
+    if(iaUltimoStatus==='erro') { cor = '#D85A30'; msg = 'Erro na última chamada'; }
+    else { cor = 'var(--verde)'; msg = 'Operacional & conectado'; }
+  }
+  dot.style.background = cor;
+  txt.textContent = msg;
+  const u = statusUsoFinHoje();
+  document.getElementById('ia-consumo-pill').textContent = `${u.tokIn+u.tokOut} tokens hoje`;
+  document.getElementById('ia-msgs').textContent = u.count;
+  document.getElementById('ia-tok-in').textContent = u.tokIn.toLocaleString('pt-BR');
+  document.getElementById('ia-tok-out').textContent = u.tokOut.toLocaleString('pt-BR');
+}
+
 function salvarChave() {
   const key = document.getElementById('setup-key').value.trim();
   if(!key || !key.startsWith('sk-ant-')) {
@@ -3165,6 +3808,7 @@ function verificarSetup() {
 carregarDados();
 processarRecorrentes();
 renderMembrosChips();
+document.getElementById('d-eye-btn').innerHTML = iconeOlho(saldoOculto);
 renderDash();
 renderContas();
 renderMetas();
