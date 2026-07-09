@@ -2550,19 +2550,22 @@ function renderMetas() {
   }).join('');
 }
 
-function aportarMeta(id) {
+async function aportarMeta(id) {
   const m = metas.find(x=>x.id===id);
   if(!m) return;
   const v = prompt(`Quanto deseja aportar em "${m.nome}"? (R$)`);
   const val = parseFloat((v||'').replace(',','.'));
   if(!val || val<=0) return;
-  m.atual += val;
+  const novoAtual = m.atual + val;
+  const { error } = await sb.from('metas').update({ atual: novoAtual }).eq('id', id);
+  if(error) { toast('Não foi possível salvar o aporte. Tente de novo.', true); return; }
+  m.atual = novoAtual;
   renderMetas();
   const pct = Math.min(Math.round(m.atual/m.total*100),100);
   toast(pct>=100 ? `🎉 Meta "${m.nome}" atingida! Parabéns!` : `R$ ${fmt(val)} aportado em "${m.nome}" (${pct}%)`);
 }
 
-function editarMeta(id) {
+async function editarMeta(id) {
   const m = metas.find(x=>x.id===id);
   if(!m) return;
   const nome = prompt('Nome da meta:', m.nome);
@@ -2571,9 +2574,12 @@ function editarMeta(id) {
   if(total===null) return;
   const atual = prompt('Valor acumulado (R$):', m.atual);
   if(atual===null) return;
-  m.nome  = nome.trim() || m.nome;
-  m.total = parseFloat(String(total).replace(',','.')) || m.total;
-  m.atual = parseFloat(String(atual).replace(',','.')) || 0;
+  const novoNome = nome.trim() || m.nome;
+  const novoTotal = parseFloat(String(total).replace(',','.')) || m.total;
+  const novoAtual = parseFloat(String(atual).replace(',','.')) || 0;
+  const { error } = await sb.from('metas').update({ nome: novoNome, total: novoTotal, atual: novoAtual }).eq('id', id);
+  if(error) { toast('Não foi possível salvar. Tente de novo.', true); return; }
+  m.nome = novoNome; m.total = novoTotal; m.atual = novoAtual;
   renderMetas();
   toast(`Meta "${m.nome}" atualizada!`);
 }
@@ -2581,7 +2587,9 @@ function editarMeta(id) {
 function excluirMeta(id) {
   const m = metas.find(x=>x.id===id);
   if(!m) return;
-  pedirConfirmacao(`Excluir a meta "${m.nome}"?`, () => {
+  pedirConfirmacao(`Excluir a meta "${m.nome}"?`, async () => {
+    const { error } = await sb.from('metas').delete().eq('id', id);
+    if(error) { toast('Não foi possível excluir. Tente de novo.', true); return; }
     metas = metas.filter(x=>x.id!==id);
     renderMetas();
     toast(`Meta "${m.nome}" excluída.`);
@@ -2598,7 +2606,7 @@ function abrirModalMeta() {
   document.getElementById('mo-meta').classList.add('open');
 }
 
-function salvarMeta() {
+async function salvarMeta() {
   const nome=document.getElementById('mm-nome').value.trim();
   const total=parseFloat(document.getElementById('mm-total').value)||0;
   const atual=parseFloat(document.getElementById('mm-atual').value)||0;
@@ -2607,7 +2615,11 @@ function salvarMeta() {
   const [a,m]=prazo?prazo.split('-'):['',''];
   const meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   const prazoFmt = prazo?`${meses[parseInt(m)-1]}/${a.slice(2)}`:'sem prazo';
-  metas.push({id:Date.now(),nome,icon:icoMetaSel,total,atual,prazo:prazoFmt});
+  const { data, error } = await sb.from('metas').insert({
+    family_id: perfilAtual.family_id, nome, icon: icoMetaSel, total, atual, prazo: prazoFmt
+  }).select().single();
+  if(error) { toast('Não foi possível criar a meta. Tente de novo.', true); return; }
+  metas.push({id:data.id,nome,icon:icoMetaSel,total,atual,prazo:prazoFmt});
   fecharModais(); renderMetas(); toast(`Meta "${nome}" criada!`);
 }
 
@@ -3416,11 +3428,13 @@ function renderCatLista() {
     </div>`).join('');
 }
 
-function adicionarCategoria() {
+async function adicionarCategoria() {
   const inp = document.getElementById('cat-nova');
   const nome = inp.value.trim();
   if(!nome){ toast('Digite um nome para a categoria.', true); return; }
   if(categorias.find(c=>c.toLowerCase()===nome.toLowerCase())){ toast('Categoria já existe.', true); return; }
+  const { error } = await sb.from('categorias').insert({ family_id: perfilAtual.family_id, nome });
+  if(error) { toast('Não foi possível criar a categoria. Tente de novo.', true); return; }
   categorias.push(nome);
   inp.value = '';
   renderCatLista();
@@ -3429,25 +3443,34 @@ function adicionarCategoria() {
   toast(`Categoria "${nome}" criada!`);
 }
 
-function editarCategoria(idx) {
+async function editarCategoria(idx) {
   const novoNome = prompt('Novo nome para a categoria:', categorias[idx]);
   if(!novoNome || !novoNome.trim()) return;
   const nomeAntigo = categorias[idx];
-  categorias[idx] = novoNome.trim();
-  // atualiza lançamentos que usavam essa categoria
-  transacoes.forEach(t => { if(t.cat === nomeAntigo) t.cat = novoNome.trim(); });
+  const nomeNovo = novoNome.trim();
+  const { error } = await sb.from('categorias').update({ nome: nomeNovo }).eq('family_id', perfilAtual.family_id).eq('nome', nomeAntigo);
+  if(error) { toast('Não foi possível salvar. Tente de novo.', true); return; }
+  await sb.from('transacoes').update({ categoria: nomeNovo }).eq('family_id', perfilAtual.family_id).eq('categoria', nomeAntigo);
+  categorias[idx] = nomeNovo;
+  transacoes.forEach(t => { if(t.cat === nomeAntigo) t.cat = nomeNovo; });
   renderCatLista();
   atualizarSelects();
   renderPerfil();
-  toast(`Categoria renomeada para "${novoNome.trim()}"`);
+  toast(`Categoria renomeada para "${nomeNovo}"`);
 }
 
 function excluirCategoria(idx) {
   const nome = categorias[idx];
-  pedirConfirmacao(`Excluir a categoria "${nome}"? Os lançamentos com ela passarão para "Outro".`, () => {
+  pedirConfirmacao(`Excluir a categoria "${nome}"? Os lançamentos com ela passarão para "Outro".`, async () => {
+    await sb.from('transacoes').update({ categoria: 'Outro' }).eq('family_id', perfilAtual.family_id).eq('categoria', nome);
+    const { error } = await sb.from('categorias').delete().eq('family_id', perfilAtual.family_id).eq('nome', nome);
+    if(error) { toast('Não foi possível excluir. Tente de novo.', true); return; }
     transacoes.forEach(t => { if(t.cat === nome) t.cat = 'Outro'; });
     categorias.splice(idx, 1);
-    if(!categorias.includes('Outro')) categorias.push('Outro');
+    if(!categorias.includes('Outro')) {
+      categorias.push('Outro');
+      await sb.from('categorias').insert({ family_id: perfilAtual.family_id, nome: 'Outro' });
+    }
     renderCatLista();
     atualizarSelects();
     renderPerfil();
@@ -4160,6 +4183,11 @@ async function carregarDadosNuvem() {
 
   if (cats && cats.length) {
     categorias = cats.map(c => c.nome);
+  } else {
+    // família criada antes desta correção: semeia as categorias padrão agora
+    const categoriasPadrao = ['Alimentação','Padaria','Restaurante','Saúde','Farmácia','Transporte','Lazer','Moradia','Salário','Investimento','Educação','Vestuário','Assinaturas','Pets','Outro'];
+    const { error: erroSeed } = await sb.from('categorias').insert(categoriasPadrao.map(nome => ({ family_id: familyId, nome })));
+    if (!erroSeed) categorias = categoriasPadrao.slice();
   }
 
   titContasAtual = perfilAtual.id;
@@ -4203,12 +4231,14 @@ async function submeterFamilia() {
 
   try {
     let familyId;
+    let familiaNova = false;
     if (famModo === 'criar') {
       const nomeFamilia = document.getElementById('fam-nome-familia').value.trim() || 'Minha Família';
       const { data: novaFamilia, error: erroFamilia } = await sb.from('families').insert({ nome: nomeFamilia }).select().single();
       if (erroFamilia) { mostrarErroFamilia('Não foi possível criar a família. Tente de novo.'); return; }
       familyId = novaFamilia.id;
       familiaAtual = novaFamilia;
+      familiaNova = true;
     } else {
       const codigo = document.getElementById('fam-codigo').value.trim().toLowerCase();
       if (!codigo) { mostrarErroFamilia('Digite o código de convite.'); return; }
@@ -4226,6 +4256,12 @@ async function submeterFamilia() {
     if (erroPerfil) { mostrarErroFamilia('Não foi possível salvar seu perfil. Tente de novo.'); return; }
 
     perfilAtual = novoPerfil;
+
+    if (familiaNova) {
+      const categoriasPadrao = ['Alimentação','Padaria','Restaurante','Saúde','Farmácia','Transporte','Lazer','Moradia','Salário','Investimento','Educação','Vestuário','Assinaturas','Pets','Outro'];
+      await sb.from('categorias').insert(categoriasPadrao.map(nome => ({ family_id: familyId, nome })));
+    }
+
     document.getElementById('t-familia-setup').style.display = 'none';
     toast(famModo === 'criar' ? 'Família criada! Bem-vindo(a) ao FinFamília.' : 'Você entrou na família!');
   } catch (e) {
