@@ -1744,16 +1744,18 @@ function atualizarNomeUsuario() {
   document.getElementById('p-av').textContent = sigla(perfilAtual.nome);
 }
 
-function editarChaveAPI() {
+async function editarChaveAPI() {
   const atual = getApiKey();
   const masked = atual ? atual.slice(0,12)+'•••' : '(não configurada)';
-  const n = prompt(`Chave atual: ${masked}\n\nCole a nova chave da API Anthropic (sk-ant-...):`);
+  const n = prompt(`Chave atual da família: ${masked}\n\nCole a nova chave da API Anthropic (sk-ant-...):`);
   if(n === null) return;
   if(!n.trim()) { toast('Operação cancelada.', true); return; }
   if(!n.trim().startsWith('sk-ant-')) { toast('Chave inválida. Deve começar com sk-ant-', true); return; }
-  localStorage.setItem('ff_apikey', n.trim());
+  const { error } = await sb.from('families').update({ anthropic_api_key: n.trim() }).eq('id', familiaAtual.id);
+  if(error) { toast('Não foi possível salvar. Tente de novo.', true); return; }
+  familiaAtual.anthropic_api_key = n.trim();
   renderPerfil();
-  toast('Chave da API atualizada!');
+  toast('Chave da API atualizada para toda a família!');
 }
 
 let pizzaChart, lineChart;
@@ -2856,7 +2858,7 @@ function renderPerfil() {
       <span style="font-size:18px;">🤖</span>
       <div style="flex:1;">
         <div style="font-size:13px;">Chave da API (Fin)</div>
-        <div style="font-size:11px;color:var(--texto-2);">${localStorage.getItem('ff_apikey') ? `Configurada ✓ · ${usoFinHoje()} mensagem${usoFinHoje()===1?'':'s'} hoje` : 'Não configurada · toque para adicionar'}</div>
+        <div style="font-size:11px;color:var(--texto-2);">${getApiKey() ? `Configurada para a família ✓ · ${usoFinHoje()} mensagem${usoFinHoje()===1?'':'s'} hoje neste aparelho` : 'Não configurada · toque para adicionar'}</div>
       </div>
       <span style="color:var(--texto-3);font-size:16px;">›</span>
     </div>`+
@@ -4017,7 +4019,7 @@ function fecharModais(e) {
 // CHAVE API — SETUP
 // ══════════════════════════
 function getApiKey() {
-  return localStorage.getItem('ff_apikey') || '';
+  return (familiaAtual && familiaAtual.anthropic_api_key) || '';
 }
 
 // contador local de mensagens ao Fin — não é a cota real da API (isso a Anthropic não expõe
@@ -4075,13 +4077,16 @@ function renderSinalIA() {
   document.getElementById('ia-tok-out').textContent = u.tokOut.toLocaleString('pt-BR');
 }
 
-function salvarChave() {
+async function salvarChave() {
   const key = document.getElementById('setup-key').value.trim();
   if(!key || !key.startsWith('sk-ant-')) {
     alert('Chave inválida. Deve começar com sk-ant-');
     return;
   }
-  localStorage.setItem('ff_apikey', key);
+  if(!familiaAtual) { alert('Aguarde o carregamento da família e tente de novo.'); return; }
+  const { error } = await sb.from('families').update({ anthropic_api_key: key }).eq('id', familiaAtual.id);
+  if(error) { alert('Não foi possível salvar a chave. Tente de novo.'); return; }
+  familiaAtual.anthropic_api_key = key;
   fecharSetup();
 }
 
@@ -4102,7 +4107,6 @@ function verificarSetup() {
 
 // ── INIT ──
 document.getElementById('d-eye-btn').innerHTML = iconeOlho(saldoOculto);
-verificarSetup();
 
 // ══════════════════════════════════════
 // SUPABASE — LOGIN, CADASTRO E FAMÍLIA
@@ -4191,6 +4195,7 @@ async function verificarPerfil() {
     familiaAtual = fam || null;
     document.getElementById('t-auth').style.display = 'none';
     document.getElementById('t-familia-setup').style.display = 'none';
+    verificarSetup();
     await carregarDadosNuvem();
     atualizarSelects();
     await processarRecorrentes();
@@ -4325,6 +4330,7 @@ async function submeterFamilia() {
     // agora que o perfil existe, já pode ler os dados completos da própria família (inclui o código de convite)
     const { data: famCompleta } = await sb.from('families').select('*').eq('id', familyId).maybeSingle();
     familiaAtual = famCompleta || { id: familyId, nome: '' };
+    verificarSetup();
 
     if (familiaNova) {
       const categoriasPadrao = ['Alimentação','Padaria','Restaurante','Saúde','Farmácia','Transporte','Lazer','Moradia','Salário','Investimento','Educação','Vestuário','Assinaturas','Pets','Outro'];
