@@ -4301,18 +4301,17 @@ async function submeterFamilia() {
     let familiaNova = false;
     if (famModo === 'criar') {
       const nomeFamilia = document.getElementById('fam-nome-familia').value.trim() || 'Minha Família';
-      const { data: novaFamilia, error: erroFamilia } = await sb.from('families').insert({ nome: nomeFamilia }).select().single();
+      const novoId = crypto.randomUUID();
+      const { error: erroFamilia } = await sb.from('families').insert({ id: novoId, nome: nomeFamilia });
       if (erroFamilia) { mostrarErroFamilia('Não foi possível criar a família. Tente de novo.'); return; }
-      familyId = novaFamilia.id;
-      familiaAtual = novaFamilia;
+      familyId = novoId;
       familiaNova = true;
     } else {
       const codigo = document.getElementById('fam-codigo').value.trim().toLowerCase();
       if (!codigo) { mostrarErroFamilia('Digite o código de convite.'); return; }
-      const { data: familiaEncontrada } = await sb.from('families').select('*').eq('codigo_convite', codigo).maybeSingle();
-      if (!familiaEncontrada) { mostrarErroFamilia('Código não encontrado. Confira com quem te enviou.'); return; }
-      familyId = familiaEncontrada.id;
-      familiaAtual = familiaEncontrada;
+      const { data: resultados, error: erroBusca } = await sb.rpc('buscar_familia_por_codigo', { p_codigo: codigo });
+      if (erroBusca || !resultados || !resultados.length) { mostrarErroFamilia('Código não encontrado. Confira com quem te enviou.'); return; }
+      familyId = resultados[0].id;
     }
 
     const corIdx = 0;
@@ -4323,6 +4322,9 @@ async function submeterFamilia() {
     if (erroPerfil) { mostrarErroFamilia('Não foi possível salvar seu perfil. Tente de novo.'); return; }
 
     perfilAtual = novoPerfil;
+    // agora que o perfil existe, já pode ler os dados completos da própria família (inclui o código de convite)
+    const { data: famCompleta } = await sb.from('families').select('*').eq('id', familyId).maybeSingle();
+    familiaAtual = famCompleta || { id: familyId, nome: '' };
 
     if (familiaNova) {
       const categoriasPadrao = ['Alimentação','Padaria','Restaurante','Saúde','Farmácia','Transporte','Lazer','Moradia','Salário','Investimento','Educação','Vestuário','Assinaturas','Pets','Outro'];
