@@ -2897,6 +2897,17 @@ function toggleFiltroPerfil() {
 // ══════════════════════════
 let inv2FiltroAtual = 'todos';
 let perfilInvestidor = localStorage.getItem('ff_perfil') || null;
+
+function systemAnaliseFin() {
+  if (perfilInvestidor === 'Arrojado') {
+    return 'Você é o Fin, analista financeiro do app FinFamília, falando com um investidor de perfil ARROJADO que já entende conceitos de mercado — pode ir direto ao ponto, sem simplificar em excesso. Faça uma análise fundamentalista completa, em português brasileiro. Para moedas, commodities ou índices: cubra contexto geopolítico atual relevante, indicadores macroeconômicos (juros, inflação, política monetária dos bancos centrais envolvidos) e a tendência de curto/médio prazo do mercado. Para ações ou empresas: cubra a saúde financeira (receita, lucro, margem, endividamento), posição competitiva no setor, catalisadores de crescimento e riscos específicos do negócio. Use termos técnicos do mercado quando forem precisos. Seja honesto quando não tiver certeza de dados numéricos exatos ou muito recentes (ex: cotação do dia), já que você não acessa dados em tempo real — nesse caso, oriente o investidor a confirmar o número atual antes de decidir.';
+  }
+  if (perfilInvestidor === 'Moderado') {
+    return 'Você é o Fin, analista financeiro do app FinFamília, falando com um investidor de perfil MODERADO. Escreva em português brasileiro, de forma clara e acessível — pode usar termos técnicos do mercado, mas sempre explique brevemente o que significam na primeira vez que aparecerem. Equilibre a explicação entre segurança e oportunidade de crescimento.';
+  }
+  // Conservador ou perfil ainda não definido no quiz
+  return 'Você é o Fin, analista financeiro do app FinFamília. Escreva em português brasileiro, linguagem simples que até uma criança de 12 anos entenderia. Use parágrafos curtos, emojis com moderação. Nunca use jargão sem explicar. Priorize explicar riscos e segurança com clareza.';
+}
 let monitAtivos = JSON.parse(localStorage.getItem('ff_monit') || '[]');
 
 const ATIVOS = [
@@ -3048,9 +3059,9 @@ function abrirAtivo(sigla) {
     headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
     body:JSON.stringify({
       model:'claude-sonnet-4-6',
-      max_tokens:2048,
-      system:'Você é o Fin, analista financeiro do app FinFamília. Escreva em português brasileiro, linguagem simples que até uma criança de 12 anos entenderia. Use parágrafos curtos, emojis com moderação. Nunca use jargão sem explicar.',
-      messages:[{role:'user',content:`Faça uma análise do ativo ${a.sigla} — ${a.nome} (${a.tipo}). Cubra: 1) Por que está na lista de indicações agora 2) Pontos positivos 3) Riscos (explicados de forma simples) 4) Para quem é indicado 5) Como investir (plataformas). Seja direto e simples.`}]
+      max_tokens:4096,
+      system:systemAnaliseFin(),
+      messages:[{role:'user',content:`Faça uma análise do ativo ${a.sigla} — ${a.nome} (${a.tipo}). Cubra: 1) Por que está na lista de indicações agora 2) Pontos positivos 3) Riscos 4) Para quem é indicado 5) Como investir (plataformas). Seja direto.`}]
     })
   }).then(r=>r.json()).then(d=>{
     const txt = d?.content?.[0]?.text || 'Análise indisponível.';
@@ -3190,9 +3201,9 @@ function analisarMonitorado(s) {
     headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
     body:JSON.stringify({
       model:'claude-sonnet-4-6',
-      max_tokens:2048,
-      system:'Você é o Fin, analista financeiro do app FinFamília. Escreva em português brasileiro, linguagem simples que até uma criança de 12 anos entenderia. Use parágrafos curtos. Nunca use jargão sem explicar. Se não conhecer o ativo com certeza, diga isso honestamente.',
-      messages:[{role:'user',content:`Analise o ativo "${s}". Cubra: 1) O que é, em linguagem simples 2) Pontos positivos 3) Riscos 4) Para qual perfil de investidor é indicado 5) Onde comprar no Brasil. Se for um ativo que você não reconhece, diga isso claramente e oriente a verificar a sigla.`}]
+      max_tokens:4096,
+      system:systemAnaliseFin(),
+      messages:[{role:'user',content:`Analise o ativo "${s}". Cubra: 1) O que é 2) Pontos positivos 3) Riscos 4) Para qual perfil de investidor é indicado 5) Onde comprar no Brasil. Se for um ativo que você não reconhece, diga isso claramente e oriente a verificar a sigla.`}]
     })
   }).then(r=>r.json()).then(d=>{
     const txt = d?.content?.[0]?.text || 'Análise indisponível.';
@@ -3815,7 +3826,7 @@ async function finEnviar() {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 2048,
+        max_tokens: 4096,
         system: finContexto(),
         messages: finHistorico,
       })
