@@ -596,6 +596,10 @@
     <button onclick="alternarModoAuth()" id="auth-alternar" style="width:100%;padding:12px;background:transparent;color:var(--texto-2);border:none;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;">
       Ainda não tem conta? Criar conta
     </button>
+
+    <button onclick="esqueciSenha()" id="auth-esqueci" style="width:100%;padding:4px;background:transparent;color:var(--texto-3);border:none;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;">
+      Esqueci minha senha
+    </button>
   </div>
 </div>
 
@@ -2905,6 +2909,14 @@ function renderPerfil() {
         <div style="font-size:11px;color:var(--texto-2);">Limpar demonstração e começar uso real</div>
       </div>
     </div>`+
+    `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:0.5px solid var(--borda);cursor:pointer;" onclick="trocarSenha()">
+      <span style="font-size:18px;">🔑</span>
+      <div style="flex:1;">
+        <div style="font-size:13px;">Trocar senha</div>
+        <div style="font-size:11px;color:var(--texto-2);">${usuarioAtual ? usuarioAtual.email : ''}</div>
+      </div>
+      <span style="color:var(--texto-3);font-size:16px;">›</span>
+    </div>`+
     `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;" onclick="sairDaConta()">
       <span style="font-size:18px;">🚪</span>
       <div style="flex:1;">
@@ -4146,6 +4158,15 @@ let usuarioAtual = null;   // objeto de auth do Supabase
 let perfilAtual = null;    // linha da tabela profiles
 let familiaAtual = null;   // linha da tabela families
 
+async function esqueciSenha() {
+  const email = document.getElementById('auth-email').value.trim();
+  if(!email) { mostrarErroAuth('Digite seu e-mail no campo acima primeiro, depois toque em "Esqueci minha senha".'); return; }
+  document.getElementById('auth-erro').style.display = 'none';
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: urlDoApp() });
+  if(error) { mostrarErroAuth('Não foi possível enviar o e-mail. Confira o endereço e tente de novo.'); return; }
+  mostrarErroAuth('Enviamos um e-mail com um link pra você criar uma senha nova. Confira sua caixa de entrada.');
+}
+
 function alternarModoAuth() {
   authModo = authModo === 'login' ? 'cadastro' : 'login';
   document.getElementById('auth-titulo').textContent = authModo === 'login' ? 'Entrar no FinFamília' : 'Criar sua conta';
@@ -4154,6 +4175,7 @@ function alternarModoAuth() {
     : 'Crie sua conta para começar a usar o FinFamília com sua família.';
   document.getElementById('auth-btn').textContent = authModo === 'login' ? 'Entrar' : 'Criar conta';
   document.getElementById('auth-alternar').textContent = authModo === 'login' ? 'Ainda não tem conta? Criar conta' : 'Já tem conta? Entrar';
+  document.getElementById('auth-esqueci').style.display = authModo === 'login' ? 'block' : 'none';
   document.getElementById('auth-erro').style.display = 'none';
 }
 
@@ -4377,6 +4399,18 @@ function sairDaConta() {
     await sb.auth.signOut();
     location.reload();
   });
+}
+
+async function trocarSenha() {
+  const nova = prompt('Digite a nova senha (mínimo 6 caracteres):');
+  if(nova === null) return;
+  if(!nova || nova.length < 6) { toast('Senha muito curta. Use pelo menos 6 caracteres.', true); return; }
+  const confirmacao = prompt('Digite a nova senha de novo, pra confirmar:');
+  if(confirmacao === null) return;
+  if(nova !== confirmacao) { toast('As senhas digitadas são diferentes. Tente de novo.', true); return; }
+  const { error } = await sb.auth.updateUser({ password: nova });
+  if(error) { toast('Não foi possível trocar a senha. Tente novamente.', true); return; }
+  toast('Senha alterada com sucesso!');
 }
 
 async function verificarAutenticacao() {
