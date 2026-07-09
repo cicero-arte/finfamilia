@@ -2248,6 +2248,24 @@ function toggleBanco(nome) {
   renderContas();
 }
 
+// ── COMPARTILHAR O APP COM TERCEIROS ──
+let terceirosAberto = false;
+function urlDoApp() {
+  return location.origin + location.pathname;
+}
+function toggleCompartilharApp() {
+  terceirosAberto = !terceirosAberto;
+  renderPerfil();
+}
+function copiarLinkApp() {
+  const url = urlDoApp();
+  navigator.clipboard?.writeText(url).then(()=>{
+    toast('Link copiado! Envie para quem quiser criar a própria conta.');
+  }).catch(()=>{
+    alert('Link do app: ' + url);
+  });
+}
+
 // ── MOEDAS ──
 // Taxas aproximadas fixas (não são cotação em tempo real — dá pra ajustar aqui se ficarem desatualizadas)
 const TAXAS_CONVERSAO = { BRL:1, USD:5.46, EUR:5.85 };
@@ -2849,6 +2867,25 @@ function renderPerfil() {
       <span style="font-size:18px;">🏷️</span>
       <div style="flex:1;"><div style="font-size:13px;">Categorias</div><div style="font-size:11px;color:var(--texto-2);">${categorias.length} categorias</div></div>
       <span style="color:var(--texto-3);font-size:16px;">›</span>
+    </div>`+
+    `<div style="border-bottom:0.5px solid var(--borda);">
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;" onclick="toggleCompartilharApp()">
+        <span style="font-size:18px;">📲</span>
+        <div style="flex:1;">
+          <div style="font-size:13px;">FinFamília para terceiros</div>
+          <div style="font-size:11px;color:var(--texto-2);">Compartilhe o app com quem ainda não usa</div>
+        </div>
+        <span style="font-size:11px;color:var(--texto-3);display:inline-block;transition:transform .15s;transform:rotate(${terceirosAberto?90:0}deg);">▶</span>
+      </div>
+      ${terceirosAberto ? `
+      <div style="padding:2px 16px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;">
+        <div style="font-size:11px;color:var(--texto-2);text-align:center;line-height:1.5;">Quem escanear ou abrir esse link cai direto na tela de criar conta própria — sem nenhum acesso à sua família ou aos seus dados.</div>
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(urlDoApp())}" alt="QR code do FinFamília" style="width:180px;height:180px;border-radius:var(--r-sm);border:0.5px solid var(--borda-2);">
+        <div style="display:flex;align-items:center;gap:8px;width:100%;">
+          <div style="flex:1;font-size:12px;color:var(--texto-2);background:var(--cinza-100);padding:8px 12px;border-radius:var(--r-sm);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${urlDoApp()}</div>
+          <button onclick="copiarLinkApp()" style="padding:8px 14px;background:var(--verde);color:white;border:none;border-radius:var(--r-sm);font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap;flex-shrink:0;">Copiar</button>
+        </div>
+      </div>` : ''}
     </div>`+
     `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:0.5px solid var(--borda);">
       <span style="font-size:18px;">📊</span>
