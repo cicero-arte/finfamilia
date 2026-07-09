@@ -1701,56 +1701,36 @@ function sigla(nome) { return (nome||'').trim().slice(0,2).toUpperCase(); }
 function nomeMembro(id) { const m = membros.find(x=>x.id===id); return m ? m.nome : (id==='familia'?'Família':id); }
 
 function adicionarMembro() {
-  const n = prompt('Nome do novo membro da família:');
-  if(!n || !n.trim()) return;
-  const i = membros.length % CORES_MEMBRO.length;
-  membros.push({ id:'m'+Date.now(), nome:n.trim(), cor:CORES_MEMBRO[i][0], corTx:CORES_MEMBRO[i][1] });
-  renderPerfil(); renderMembrosChips(); renderContas();
-  toast(`${n.trim()} adicionado à família!`);
+  copiarCodigoConvite();
+  toast('Para adicionar alguém, peça para essa pessoa criar a própria conta no FinFamília e usar esse código de convite.');
 }
 
-function renomearMembro(id) {
-  const m = membros.find(x=>x.id===id);
-  if(!m) return;
-  const n = prompt('Novo nome:', m.nome);
+async function renomearMembro(id) {
+  if (id !== perfilAtual.id) { toast('Cada pessoa só pode renomear a própria conta.', true); return; }
+  const n = prompt('Novo nome:', perfilAtual.nome);
   if(!n || !n.trim()) return;
-  m.nome = n.trim();
+  const { error } = await sb.from('profiles').update({ nome: n.trim() }).eq('id', perfilAtual.id);
+  if(error) { toast('Não foi possível salvar. Tente de novo.', true); return; }
+  perfilAtual.nome = n.trim();
+  const m = membros.find(x=>x.id===id);
+  if(m) m.nome = n.trim();
   renderPerfil(); renderMembrosChips(); renderDash(); renderContas();
-  toast('Membro renomeado!');
-}
-
-function excluirMembro(id) {
-  if(membros.length <= 1) { toast('É preciso ter ao menos um membro.', true); return; }
-  const m = membros.find(x=>x.id===id);
-  if(!m) return;
-  pedirConfirmacao(`Excluir ${m.nome}? As contas e lançamentos dele também serão excluídos.`, () => {
-    membros = membros.filter(x=>x.id!==id);
-    contas = contas.filter(c=>c.titular!==id);
-    transacoes = transacoes.filter(t=>t.titular!==id);
-    desafios = desafios.filter(d=>d.membroId!==id);
-    conquistas = conquistas.filter(c=>c.membroId!==id);
-    if(titContasAtual===id) titContasAtual = membros[0].id;
-    if(dashMembro===id) dashMembro = 'familia';
-    renderPerfil(); renderMembrosChips(); renderDash(); renderContas();
-    toast(`${m.nome} removido da família.`);
-  });
-}
-
-function editarNomeUsuario() {
-  const atual = localStorage.getItem('ff_nome') || '';
-  const n = prompt('Seu nome:', atual);
-  if(!n || !n.trim()) return;
-  localStorage.setItem('ff_nome', n.trim());
-  atualizarNomeUsuario();
   toast('Nome atualizado!');
 }
 
+function excluirMembro(id) {
+  toast('Remover alguém da família precisa ser feito com cuidado, pra ninguém perder acesso sem querer. Fale comigo no chat pra eu te ajudar com isso.', true);
+}
+
+function editarNomeUsuario() {
+  if (!perfilAtual) return;
+  renomearMembro(perfilAtual.id);
+}
+
 function atualizarNomeUsuario() {
-  const nome = localStorage.getItem('ff_nome');
-  if(nome) {
-    document.getElementById('p-nome').textContent = nome;
-    document.getElementById('p-av').textContent = sigla(nome);
-  }
+  if (!perfilAtual) return;
+  document.getElementById('p-nome').textContent = perfilAtual.nome;
+  document.getElementById('p-av').textContent = sigla(perfilAtual.nome);
 }
 
 function editarChaveAPI() {
@@ -1954,7 +1934,7 @@ function renderSelecaoContas(m, cs, deselecionadas) {
   if(!cs.length) { lista.innerHTML = '<div style="font-size:12px;color:var(--texto-3);padding:8px 6px;">Nenhuma conta ainda.</div>'; return; }
   lista.innerHTML = cs.map(c => {
     const marcada = !deselecionadas.includes(c.id);
-    return `<div onclick="toggleContaSelecionada(${c.id})" style="display:flex;align-items:center;gap:8px;padding:7px 6px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:500;" onmouseover="this.style.background='var(--cinza-100)'" onmouseout="this.style.background='transparent'">
+    return `<div onclick="toggleContaSelecionada('${c.id}')" style="display:flex;align-items:center;gap:8px;padding:7px 6px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:500;" onmouseover="this.style.background='var(--cinza-100)'" onmouseout="this.style.background='transparent'">
       <div style="width:16px;height:16px;border-radius:5px;border:1.5px solid ${marcada?'var(--verde)':'var(--cinza-200)'};background:${marcada?'var(--verde)':'var(--branco)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:10px;">${marcada?'✓':''}</div>
       <span style="flex:1;">${c.icon} ${c.nome}${c.titular==='familia'?' 👨‍👩‍👧':''}</span>
       <span style="font-size:11px;color:var(--texto-3);">${simboloMoeda(c)} ${fmt0(c.saldo)}</span>
@@ -2046,7 +2026,7 @@ function renderTxList(id, txs) {
   const el = document.getElementById(id);
   if(!txs.length){ el.innerHTML='<div class="empty"><div class="empty-ico">📋</div><p>Nenhum lançamento ainda.</p></div>'; return; }
   el.innerHTML = txs.map((t,i)=>`
-    <div class="tx" style="${i===txs.length-1?'border-bottom:none':''};cursor:pointer;" onclick="abrirEditarLanc(${t.id})">
+    <div class="tx" style="${i===txs.length-1?'border-bottom:none':''};cursor:pointer;" onclick="abrirEditarLanc('${t.id}')">
       <div class="tx-ico" style="background:${t.tipo==='e'?'#E1F5EE':'#FAECE7'}">
         ${t.tipo==='e'?'↓':'↑'}
       </div>
@@ -2103,7 +2083,7 @@ function renderContas() {
 
   const contaCardHtml = c => `
     <div class="conta-card" id="cc-${c.id}">
-      <div class="conta-head" onclick="toggleAcoes(${c.id})">
+      <div class="conta-head" onclick="toggleAcoes('${c.id}')">
         <div class="conta-ico" style="background:${c.cor}">${c.icon}</div>
         <div style="flex:1;">
           <div class="conta-nome-txt">${c.nome}${c.titular==='familia'?' <span style="font-size:10px;font-weight:500;color:var(--azul-600);background:var(--azul-100);padding:1px 7px;border-radius:8px;margin-left:4px;">👨‍👩‍👧 Conjunta</span>':''}</div>
@@ -2116,18 +2096,18 @@ function renderContas() {
       </div>
       <div class="conta-acoes" id="ca-${c.id}">
         <div class="ag">
-          <button class="ab prim" onclick="editarConta(${c.id})">✏️ Editar</button>
-          <button class="ab" onclick="verLanc(${c.id})">📋 Lançamentos</button>
+          <button class="ab prim" onclick="editarConta('${c.id}')">✏️ Editar</button>
+          <button class="ab" onclick="verLanc('${c.id}')">📋 Lançamentos</button>
         </div>
         <div class="visib-row">
           <span class="visib-lbl">${c.pub?'Pública':'Privada'}</span>
-          <button class="tgl ${c.pub?'on':''}" onclick="togVisib(${c.id})" aria-label="Visibilidade"><div class="tgl-k"></div></button>
+          <button class="tgl ${c.pub?'on':''}" onclick="togVisib('${c.id}')" aria-label="Visibilidade"><div class="tgl-k"></div></button>
         </div>
         <div class="ag">
           ${c.inativa
-            ? `<button class="ab prim" onclick="desarquivarConta(${c.id})">♻️ Reativar</button>`
-            : `<button class="ab" onclick="arquivarConta(${c.id})">📦 Arquivar</button>`}
-          <button class="ab danger" onclick="excluirConta(${c.id})">🗑 Excluir</button>
+            ? `<button class="ab prim" onclick="desarquivarConta('${c.id}')">♻️ Reativar</button>`
+            : `<button class="ab" onclick="arquivarConta('${c.id}')">📦 Arquivar</button>`}
+          <button class="ab danger" onclick="excluirConta('${c.id}')">🗑 Excluir</button>
         </div>
       </div>
     </div>`;
@@ -2155,9 +2135,13 @@ function toggleAcoes(id) {
   if(!open) el.classList.add('open');
 }
 
-function togVisib(id) {
+async function togVisib(id) {
   const c = contas.find(c=>c.id===id);
-  c.pub = !c.pub;
+  if(!c) return;
+  const novoPub = !c.pub;
+  const { error } = await sb.from('contas').update({ pub: novoPub }).eq('id', id);
+  if(error) { toast('Não foi possível atualizar. Tente de novo.', true); return; }
+  c.pub = novoPub;
   renderContas();
   toast(`${c.nome} agora é ${c.pub?'pública':'privada'}`);
   setTimeout(()=>{ const el=document.getElementById(`ca-${id}`); if(el)el.classList.add('open'); },50);
@@ -2166,9 +2150,13 @@ function togVisib(id) {
 function excluirConta(id) {
   const c = contas.find(c=>c.id===id);
   if(!c) return;
-  pedirConfirmacao(`Excluir "${c.nome}"? Os lançamentos serão perdidos.`, () => {
+  pedirConfirmacao(`Excluir "${c.nome}"? Os lançamentos serão perdidos.`, async () => {
+    const { error } = await sb.from('contas').delete().eq('id', id);
+    if(error) { toast('Não foi possível excluir. Tente de novo.', true); return; }
     contas = contas.filter(c=>c.id!==id);
+    transacoes = transacoes.filter(t=>t.contaId!==id);
     renderContas();
+    renderDash();
     toast(`Conta "${c.nome}" excluída`);
   });
 }
@@ -2238,7 +2226,7 @@ function moedaMudou() {
   document.getElementById('mo-saldo-label').textContent = `Saldo inicial (${simb})`;
 }
 
-function salvarConta() {
+async function salvarConta() {
   const nome = document.getElementById('mo-nome').value.trim();
   const tipo = document.getElementById('mo-tipo').value;
   const moeda = document.getElementById('mo-moeda').value;
@@ -2250,29 +2238,47 @@ function salvarConta() {
   if(moeda==='custom' && !moedaSimbolo){ toast('Digite o símbolo ou código da moeda.', true); return; }
   if(contaEditId) {
     const c = contas.find(c=>c.id===contaEditId);
-    c.nome=nome; c.tipo=tipo||c.tipo; c.saldo=saldo; c.icon=icoContaSel; c.moeda=moeda; c.moedaSimbolo=moeda==='custom'?moedaSimbolo:null; c.inativa=inativa;
     if(!c.criadorId) c.criadorId = c.titular!=='familia' ? c.titular : titContasAtual;
+    const novoTitularId = conjunta ? null : c.criadorId;
+    const { error } = await sb.from('contas').update({
+      nome, tipo: tipo||c.tipo, saldo, icon: icoContaSel, moeda,
+      moeda_simbolo: moeda==='custom'?moedaSimbolo:null, inativa, titular_id: novoTitularId
+    }).eq('id', contaEditId);
+    if(error) { toast('Não foi possível salvar a conta. Tente de novo.', true); return; }
+    c.nome=nome; c.tipo=tipo||c.tipo; c.saldo=saldo; c.icon=icoContaSel; c.moeda=moeda; c.moedaSimbolo=moeda==='custom'?moedaSimbolo:null; c.inativa=inativa;
     c.titular = conjunta ? 'familia' : c.criadorId;
     toast(`Conta "${nome}" atualizada`);
   } else {
-    contas.push({id:Date.now(),nome,tipo:tipo||'Outro',saldo,icon:icoContaSel,pub:true,cor:CORES_CONTA[contas.length%CORES_CONTA.length],titular:conjunta?'familia':titContasAtual,criadorId:titContasAtual,inativa,moeda,moedaSimbolo:moeda==='custom'?moedaSimbolo:null});
+    const titularId = conjunta ? null : titContasAtual;
+    const cor = CORES_CONTA[contas.length%CORES_CONTA.length];
+    const { data, error } = await sb.from('contas').insert({
+      family_id: perfilAtual.family_id, titular_id: titularId, criador_id: titContasAtual,
+      nome, tipo: tipo||'Outro', saldo, icon: icoContaSel, pub: true, cor, inativa, moeda,
+      moeda_simbolo: moeda==='custom'?moedaSimbolo:null
+    }).select().single();
+    if(error) { toast('Não foi possível criar a conta. Tente de novo.', true); return; }
+    contas.push({id:data.id,nome,tipo:tipo||'Outro',saldo,icon:icoContaSel,pub:true,cor,titular:conjunta?'familia':titContasAtual,criadorId:titContasAtual,inativa,moeda,moedaSimbolo:moeda==='custom'?moedaSimbolo:null});
     toast(`Conta "${nome}" criada!`);
   }
   fecharModais();
   renderContas();
 }
 
-function arquivarConta(id) {
+async function arquivarConta(id) {
   const c = contas.find(c=>c.id===id);
   if(!c) return;
+  const { error } = await sb.from('contas').update({ inativa: true }).eq('id', id);
+  if(error) { toast('Não foi possível arquivar. Tente de novo.', true); return; }
   c.inativa = true;
   renderContas();
   toast(`"${c.nome}" arquivada. Ela sai dos totais, mas o histórico continua salvo.`);
 }
 
-function desarquivarConta(id) {
+async function desarquivarConta(id) {
   const c = contas.find(c=>c.id===id);
   if(!c) return;
+  const { error } = await sb.from('contas').update({ inativa: false }).eq('id', id);
+  if(error) { toast('Não foi possível reativar. Tente de novo.', true); return; }
   c.inativa = false;
   renderContas();
   toast(`"${c.nome}" reativada.`);
@@ -2343,7 +2349,7 @@ function renderLancContas() {
   }
 
   el.innerHTML = cs.map(c=>`
-    <div class="cc ${c.id===lancConta?'sel':''}" data-cid="${c.id}" onclick="selConta(this,${c.id})">
+    <div class="cc ${c.id===lancConta?'sel':''}" data-cid="${c.id}" onclick="selConta(this,'${c.id}')">
       <div class="cc-ico">${c.icon}</div>
       <div class="cc-nome">${c.nome}</div>
       <div class="cc-val" style="font-size:10px;color:var(--texto-2);">${nomeMembro(c.titular)}</div>
@@ -2357,7 +2363,7 @@ function selConta(el, id) {
   lancConta = id;
   // atualiza visual sem re-renderizar tudo
   document.querySelectorAll('#l-contas .cc').forEach(c=>{
-    const cid = parseInt(c.dataset.cid);
+    const cid = c.dataset.cid;
     const isSelected = cid === id;
     c.classList.toggle('sel', isSelected);
     const valEl = c.querySelector('div:last-child');
@@ -2439,26 +2445,37 @@ Regras:
   reader.readAsDataURL(file);
 }
 
-function lancar() {
+async function lancar() {
   const val  = parseFloat(document.getElementById('l-val').value);
   const desc = document.getElementById('l-desc').value.trim();
-  const data = document.getElementById('l-data').value;
-  const cat  = document.getElementById('l-cat').value;
+  const data = document.getElementById('l-data').value || new Date().toISOString().slice(0,10);
+  const cat  = document.getElementById('l-cat').value || 'Outro';
   if(!val||val<=0)  { toast('Digite um valor maior que zero.', true); return; }
   if(!desc)         { toast('Digite uma descrição para o lançamento.', true); return; }
   if(!lancConta)    { toast('Selecione uma conta antes de registrar.', true); return; }
   const c = contas.find(c=>c.id===lancConta);
   if(!c)            { toast('Conta não encontrada. Selecione outra.', true); return; }
+
+  const titularId = c.titular==='familia' ? null : c.titular;
+  const { data: novaTx, error } = await sb.from('transacoes').insert({
+    family_id: perfilAtual.family_id, conta_id: c.id, titular_id: titularId,
+    tipo: lancTipo, val, descricao: desc, data, categoria: cat
+  }).select().single();
+  if(error) { toast('Não foi possível registrar o lançamento. Tente de novo.', true); return; }
+
+  const novoSaldo = c.saldo + (lancTipo==='e' ? val : -val);
+  await sb.from('contas').update({ saldo: novoSaldo }).eq('id', c.id);
+  c.saldo = novoSaldo;
+  transacoes.unshift({id:novaTx.id,tipo:lancTipo,val,desc,data,cat,conta:c.nome,titular:c.titular,contaId:c.id});
+
   const isRec = document.getElementById('l-rec').classList.contains('on');
-  const recId = isRec ? 'rec'+Date.now() : null;
-  const tx = {id:Date.now(),tipo:lancTipo,val,desc,
-    data:data||new Date().toISOString().slice(0,10),
-    cat:cat||'Outro',conta:c.nome,titular:c.titular,recId};
-  transacoes.unshift(tx);
-  c.saldo += lancTipo==='e' ? val : -val;
   if(isRec) {
-    const dia = parseInt(tx.data.slice(8));
-    recorrentes.push({id:recId,tipo:lancTipo,val,desc,cat:tx.cat,conta:c.nome,titular:c.titular,dia});
+    const dia = parseInt(data.slice(8));
+    const { data: novoRec, error: erroRec } = await sb.from('recorrentes').insert({
+      family_id: perfilAtual.family_id, conta_id: c.id, titular_id: titularId,
+      tipo: lancTipo, val, descricao: desc, categoria: cat, dia
+    }).select().single();
+    if(!erroRec) recorrentes.push({id:novoRec.id,tipo:lancTipo,val,desc,cat,conta:c.nome,titular:c.titular,dia,contaId:c.id});
     toast(`${lancTipo==='e'?'Entrada':'Saída'} recorrente em ${c.nome} criada! Repetirá todo dia ${dia}.`);
   } else {
     toast(`${lancTipo==='e'?'Entrada de R$':'Saída de R$'} ${fmt(val)} em ${c.nome} registrada!`);
@@ -2468,27 +2485,39 @@ function lancar() {
   document.getElementById('l-cat').value='';
   document.getElementById('l-rec').classList.remove('on');
   renderTxList('l-txs', transacoes.slice(0,5));
+  renderContas();
   renderDash();
 }
 
-function processarRecorrentes() {
+async function processarRecorrentes() {
   // ao abrir o app: cria os lançamentos recorrentes do mês que ainda não existem
   const hoje = new Date();
   const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
   const diaHoje = hoje.getDate();
   let criados = 0;
-  recorrentes.forEach(r => {
-    if(diaHoje < r.dia) return; // ainda não chegou o dia
-    const jaExiste = transacoes.some(t => t.recId===r.id && t.data.startsWith(mesAtual));
-    if(jaExiste) return;
+  for (const r of recorrentes) {
+    if(diaHoje < r.dia) continue; // ainda não chegou o dia
     const dataTx = `${mesAtual}-${String(Math.min(r.dia,28)).padStart(2,'0')}`;
-    transacoes.unshift({ id:Date.now()+criados, tipo:r.tipo, val:r.val, desc:r.desc+' (recorrente)', data:dataTx, cat:r.cat, conta:r.conta, titular:r.titular, recId:r.id });
-    const c = contas.find(c=>c.nome===r.conta && c.titular===r.titular);
-    if(c) c.saldo += r.tipo==='e' ? r.val : -r.val;
+    const descRec = r.desc+' (recorrente)';
+    const jaExiste = transacoes.some(t => t.contaId===r.contaId && t.desc===descRec && t.data===dataTx);
+    if(jaExiste) continue;
+    const c = contas.find(c=>c.id===r.contaId);
+    if(!c) continue;
+    const titularId = r.titular==='familia' ? null : r.titular;
+    const { data: novaTx, error } = await sb.from('transacoes').insert({
+      family_id: perfilAtual.family_id, conta_id: c.id, titular_id: titularId,
+      tipo: r.tipo, val: r.val, descricao: descRec, data: dataTx, categoria: r.cat
+    }).select().single();
+    if(error) continue;
+    const novoSaldo = c.saldo + (r.tipo==='e' ? r.val : -r.val);
+    await sb.from('contas').update({ saldo: novoSaldo }).eq('id', c.id);
+    c.saldo = novoSaldo;
+    transacoes.unshift({ id:novaTx.id, tipo:r.tipo, val:r.val, desc:descRec, data:dataTx, cat:r.cat, conta:r.conta, titular:r.titular, contaId:c.id });
     criados++;
-  });
+  }
   if(criados > 0) {
-    salvarDados();
+    renderContas();
+    renderDash();
     setTimeout(()=>toast(`${criados} lançamento(s) recorrente(s) deste mês registrado(s) automaticamente.`), 800);
   }
 }
@@ -2513,9 +2542,9 @@ function renderMetas() {
         <div class="meta-total">meta: R$ ${fmt0(m.total)}</div>
       </div>
       <div style="display:flex;gap:6px;margin-top:12px;">
-        <button onclick="aportarMeta(${m.id})" style="flex:2;padding:8px;background:var(--verde-100);color:var(--verde-800);border:0.5px solid var(--verde-200);border-radius:var(--r-sm);font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">+ Aportar</button>
-        <button onclick="editarMeta(${m.id})" style="flex:1;padding:8px;background:var(--branco);color:var(--texto-2);border:0.5px solid var(--borda-2);border-radius:var(--r-sm);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;">✏️ Editar</button>
-        <button onclick="excluirMeta(${m.id})" style="flex:1;padding:8px;background:var(--branco);color:var(--coral-600);border:0.5px solid var(--coral-100);border-radius:var(--r-sm);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;">🗑</button>
+        <button onclick="aportarMeta('${m.id}')" style="flex:2;padding:8px;background:var(--verde-100);color:var(--verde-800);border:0.5px solid var(--verde-200);border-radius:var(--r-sm);font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">+ Aportar</button>
+        <button onclick="editarMeta('${m.id}')" style="flex:1;padding:8px;background:var(--branco);color:var(--texto-2);border:0.5px solid var(--borda-2);border-radius:var(--r-sm);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;">✏️ Editar</button>
+        <button onclick="excluirMeta('${m.id}')" style="flex:1;padding:8px;background:var(--branco);color:var(--coral-600);border:0.5px solid var(--coral-100);border-radius:var(--r-sm);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;">🗑</button>
       </div>
     </div>`;
   }).join('');
@@ -2728,17 +2757,19 @@ function renderPerfil() {
 
   const filtroPerfil = localStorage.getItem('ff_filtro_perfil') !== 'false';
 
-  // membros editáveis de verdade
-  document.getElementById('p-membros').innerHTML = membros.map(m=>`
+  // membros da família (vindos de contas reais)
+  document.getElementById('p-membros').innerHTML = membros.map(m=>{
+    const souEu = perfilAtual && m.id === perfilAtual.id;
+    return `
     <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:0.5px solid var(--borda);">
       <div style="width:32px;height:32px;border-radius:50%;background:${m.cor};color:${m.corTx};font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${sigla(m.nome)}</div>
-      <div style="flex:1;font-size:13px;font-weight:500;">${m.nome}</div>
-      <button onclick="renomearMembro('${m.id}')" style="padding:5px 10px;border:0.5px solid var(--borda-2);border-radius:var(--r-sm);background:var(--branco);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--texto-2);">✏️</button>
-      <button onclick="excluirMembro('${m.id}')" style="padding:5px 10px;border:0.5px solid var(--coral-100);border-radius:var(--r-sm);background:var(--branco);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--coral-600);">🗑</button>
-    </div>`).join('') +
+      <div style="flex:1;font-size:13px;font-weight:500;">${m.nome}${souEu?' (você)':''}</div>
+      ${souEu ? `<button onclick="renomearMembro('${m.id}')" style="padding:5px 10px;border:0.5px solid var(--borda-2);border-radius:var(--r-sm);background:var(--branco);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--texto-2);">✏️</button>` : ''}
+    </div>`;
+  }).join('') +
     `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;" onclick="adicionarMembro()">
       <span style="font-size:18px;">➕</span>
-      <div style="flex:1;font-size:13px;color:var(--verde);font-weight:500;">Adicionar membro</div></div>`;
+      <div style="flex:1;font-size:13px;color:var(--verde);font-weight:500;">Convidar alguém pra família</div></div>`;
 
   // configurações — apenas o que funciona
   document.getElementById('p-configs').innerHTML =
@@ -3344,7 +3375,7 @@ function renderRelatorio() {
     lista.innerHTML='<div class="empty"><div class="empty-ico">📋</div><p>Nenhum lançamento no período.</p></div>';
   } else {
     lista.innerHTML = sorted.map((t,i)=>`
-      <div class="tx" style="${i===sorted.length-1?'border-bottom:none':''};cursor:pointer;" onclick="abrirEditarLanc(${t.id})">
+      <div class="tx" style="${i===sorted.length-1?'border-bottom:none':''};cursor:pointer;" onclick="abrirEditarLanc('${t.id}')">
         <div class="tx-ico" style="background:${t.tipo==='e'?'#E1F5EE':'#FAECE7'}">${t.tipo==='e'?'↓':'↑'}</div>
         <div class="tx-info">
           <div class="tx-nome">${t.desc}</div>
@@ -3476,29 +3507,45 @@ function mlSetTipo(t) {
   document.getElementById('ml-tb-s').className = 'tipo-btn s' + (t==='s'?' ativo':'');
 }
 
-function salvarLanc() {
+async function salvarLanc() {
   const t = transacoes.find(t=>t.id===lancEditId);
   if(!t) return;
   const novoVal  = parseFloat(document.getElementById('ml-val').value) || 0;
   const novoTipo = mlTipo;
-  const novaContaId = parseInt(document.getElementById('ml-conta').value);
-  const novaConta = contas.find(c=>c.id===novaContaId);
+  const novaContaId = document.getElementById('ml-conta').value;
+  const novaConta = contas.find(c=>c.id===novaContaId) || contas.find(c=>c.id===t.contaId);
+  if(!novaConta) { toast('Conta não encontrada.', true); return; }
+
+  const novaDesc = document.getElementById('ml-desc').value.trim() || t.desc;
+  const novaData = document.getElementById('ml-data').value || t.data;
+  const novaCat  = document.getElementById('ml-cat').value  || t.cat;
+  const novoTitularId = novaConta.titular==='familia' ? null : novaConta.titular;
+
+  const { error } = await sb.from('transacoes').update({
+    tipo: novoTipo, val: novoVal, descricao: novaDesc, data: novaData, categoria: novaCat,
+    conta_id: novaConta.id, titular_id: novoTitularId
+  }).eq('id', t.id);
+  if(error) { toast('Não foi possível salvar. Tente de novo.', true); return; }
 
   // reverte saldo na conta antiga
-  const cAnt = contas.find(c=>c.nome===t.conta && c.titular===t.titular);
-  if(cAnt) cAnt.saldo -= t.tipo==='e' ? t.val : -t.val;
+  const cAnt = contas.find(c=>c.id===t.contaId);
+  if(cAnt) {
+    const saldoAntRevertido = cAnt.saldo - (t.tipo==='e' ? t.val : -t.val);
+    if(cAnt.id === novaConta.id) {
+      const saldoFinal = saldoAntRevertido + (novoTipo==='e' ? novoVal : -novoVal);
+      cAnt.saldo = saldoFinal;
+      await sb.from('contas').update({ saldo: saldoFinal }).eq('id', cAnt.id);
+    } else {
+      cAnt.saldo = saldoAntRevertido;
+      await sb.from('contas').update({ saldo: saldoAntRevertido }).eq('id', cAnt.id);
+      const saldoNovo = novaConta.saldo + (novoTipo==='e' ? novoVal : -novoVal);
+      novaConta.saldo = saldoNovo;
+      await sb.from('contas').update({ saldo: saldoNovo }).eq('id', novaConta.id);
+    }
+  }
 
-  // aplica mudanças
-  t.tipo    = novoTipo;
-  t.val     = novoVal;
-  t.desc    = document.getElementById('ml-desc').value.trim() || t.desc;
-  t.data    = document.getElementById('ml-data').value || t.data;
-  t.cat     = document.getElementById('ml-cat').value  || t.cat;
-  if(novaConta) { t.conta = novaConta.nome; t.titular = novaConta.titular; }
-
-  // aplica saldo na conta nova
-  const cNov = contas.find(c=>c.nome===t.conta && c.titular===t.titular);
-  if(cNov) cNov.saldo += novoTipo==='e' ? novoVal : -novoVal;
+  t.tipo = novoTipo; t.val = novoVal; t.desc = novaDesc; t.data = novaData; t.cat = novaCat;
+  t.conta = novaConta.nome; t.titular = novaConta.titular; t.contaId = novaConta.id;
 
   fecharModais();
   renderTxList('l-txs', transacoes.slice(0,5));
@@ -3509,11 +3556,17 @@ function salvarLanc() {
 }
 
 function excluirLanc() {
-  pedirConfirmacao('Excluir este lançamento?', () => {
+  pedirConfirmacao('Excluir este lançamento?', async () => {
   const t = transacoes.find(t=>t.id===lancEditId);
   if(t) {
-    const c = contas.find(c=>c.nome===t.conta && c.titular===t.titular);
-    if(c) c.saldo -= t.tipo==='e' ? t.val : -t.val;
+    const { error } = await sb.from('transacoes').delete().eq('id', t.id);
+    if(error) { toast('Não foi possível excluir. Tente de novo.', true); return; }
+    const c = contas.find(c=>c.id===t.contaId);
+    if(c) {
+      const novoSaldo = c.saldo - (t.tipo==='e' ? t.val : -t.val);
+      c.saldo = novoSaldo;
+      await sb.from('contas').update({ saldo: novoSaldo }).eq('id', c.id);
+    }
     transacoes = transacoes.filter(tx=>tx.id!==lancEditId);
   }
   fecharModais();
@@ -3958,14 +4011,7 @@ function verificarSetup() {
 }
 
 // ── INIT ──
-carregarDados();
-processarRecorrentes();
-renderMembrosChips();
 document.getElementById('d-eye-btn').innerHTML = iconeOlho(saldoOculto);
-renderDash();
-renderContas();
-renderMetas();
-atualizarSelects();
 verificarSetup();
 
 // ══════════════════════════════════════
@@ -4055,11 +4101,69 @@ async function verificarPerfil() {
     familiaAtual = fam || null;
     document.getElementById('t-auth').style.display = 'none';
     document.getElementById('t-familia-setup').style.display = 'none';
+    await carregarDadosNuvem();
+    atualizarSelects();
+    await processarRecorrentes();
+    renderMembrosChips();
+    renderDash();
+    renderContas();
+    renderMetas();
+    renderPerfil();
   } else {
     document.getElementById('t-auth').style.display = 'none';
     document.getElementById('fam-nome-pessoa').value = '';
     document.getElementById('t-familia-setup').style.display = 'flex';
   }
+}
+
+async function carregarDadosNuvem() {
+  const familyId = perfilAtual.family_id;
+  const [{ data: cs }, { data: txs }, { data: gs }, { data: cats }, { data: profs }, { data: recs }] = await Promise.all([
+    sb.from('contas').select('*').eq('family_id', familyId).order('criado_em'),
+    sb.from('transacoes').select('*').eq('family_id', familyId).order('data', { ascending: false }),
+    sb.from('metas').select('*').eq('family_id', familyId).order('criado_em'),
+    sb.from('categorias').select('*').eq('family_id', familyId).order('nome'),
+    sb.from('profiles').select('*').eq('family_id', familyId).order('criado_em'),
+    sb.from('recorrentes').select('*').eq('family_id', familyId),
+  ]);
+
+  membros = (profs && profs.length ? profs : [perfilAtual]).map(p => ({
+    id: p.id, nome: p.nome, cor: p.cor || CORES_MEMBRO[0][0], corTx: p.cor_tx || CORES_MEMBRO[0][1]
+  }));
+
+  contas = (cs || []).map(c => ({
+    id: c.id, nome: c.nome, tipo: c.tipo, saldo: Number(c.saldo), icon: c.icon,
+    pub: c.pub, cor: c.cor, titular: c.titular_id || 'familia', criadorId: c.criador_id,
+    inativa: c.inativa, moeda: c.moeda, moedaSimbolo: c.moeda_simbolo
+  }));
+
+  transacoes = (txs || []).map(t => {
+    const conta = contas.find(c => c.id === t.conta_id);
+    return {
+      id: t.id, tipo: t.tipo, val: Number(t.val), desc: t.descricao, data: t.data,
+      cat: t.categoria, conta: conta ? conta.nome : '', titular: t.titular_id || 'familia',
+      contaId: t.conta_id, recId: null
+    };
+  });
+
+  recorrentes = (recs || []).map(r => {
+    const conta = contas.find(c => c.id === r.conta_id);
+    return {
+      id: r.id, tipo: r.tipo, val: Number(r.val), desc: r.descricao, cat: r.categoria,
+      conta: conta ? conta.nome : '', titular: r.titular_id || 'familia', dia: r.dia, contaId: r.conta_id
+    };
+  });
+
+  metas = (gs || []).map(m => ({
+    id: m.id, nome: m.nome, icon: m.icon, total: Number(m.total), atual: Number(m.atual), prazo: m.prazo
+  }));
+
+  if (cats && cats.length) {
+    categorias = cats.map(c => c.nome);
+  }
+
+  titContasAtual = perfilAtual.id;
+  dashMembro = 'familia';
 }
 
 function alternarModoFamilia(modo) {
