@@ -2081,6 +2081,7 @@ function renderContas() {
         </div>
         <div>
           <div class="conta-saldo-txt">${simboloMoeda(c)} ${fmt(c.saldo)}</div>
+          ${c.moeda && c.moeda!=='BRL' ? `<div style="font-size:11px;color:var(--texto-3);text-align:right;">≈ R$ ${fmt(saldoEmReais(c))}</div>` : ''}
           <div class="conta-visib ${c.pub?'pub':'priv'}">${c.pub?'👁 Visível':'🔒 Privada'}</div>
         </div>
       </div>
