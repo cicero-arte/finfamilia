@@ -1412,7 +1412,18 @@
   <div class="modal-box" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
     <div class="modal-title" id="mo-conta-title">Nova conta</div>
-    <div class="field"><label>Nome da conta</label><input type="text" id="mo-nome" placeholder="Ex: Nubank, Poupança..."></div>
+    <div class="field"><label>Banco / Instituição</label>
+      <input type="text" id="mo-banco" list="mo-banco-lista" placeholder="Ex: Inter, Itaú, Nubank...">
+      <datalist id="mo-banco-lista">
+        <option value="Nubank"><option value="Inter"><option value="Itaú"><option value="Bradesco">
+        <option value="Santander"><option value="Caixa"><option value="Banco do Brasil"><option value="PagBank">
+        <option value="C6 Bank"><option value="BTG Pactual"><option value="PicPay"><option value="Mercado Pago">
+        <option value="Sicoob"><option value="Sicredi"><option value="Original"><option value="Neon">
+        <option value="XP"><option value="Will Bank">
+      </datalist>
+      <div style="font-size:11px;color:var(--texto-3);margin-top:4px;">Usado para agrupar suas contas na lista.</div>
+    </div>
+    <div class="field"><label>Nome da conta</label><input type="text" id="mo-nome" placeholder="Ex: Conta PJ, Poupança..."></div>
     <div class="field"><label>Tipo</label>
       <select id="mo-tipo">
         <option value="">Selecione</option>
@@ -2114,7 +2125,40 @@ function renderContas() {
 
   const lista = document.getElementById('c-lista');
   if(!cs.length && !arquivadas.length){ lista.innerHTML='<div class="empty"><div class="empty-ico">💳</div><p>Nenhuma conta. Crie uma acima.</p></div>'; return; }
-  let html = cs.length ? cs.map(contaCardHtml).join('') : '<div class="empty" style="padding:20px;"><p style="font-size:12px;">Nenhuma conta ativa.</p></div>';
+
+  let html = '';
+  if(!cs.length) {
+    html = '<div class="empty" style="padding:20px;"><p style="font-size:12px;">Nenhuma conta ativa.</p></div>';
+  } else {
+    const grupos = {};
+    cs.forEach(c => { const b = bancoDaConta(c); (grupos[b] = grupos[b]||[]).push(c); });
+    const nomesGrupos = Object.keys(grupos);
+
+    if (nomesGrupos.length <= 1) {
+      // só um banco (ou nenhum identificado): lista simples, sem acordeão
+      html = cs.map(contaCardHtml).join('');
+    } else {
+      html = nomesGrupos.map(banco => {
+        const contasBanco = grupos[banco];
+        const subtotal = contasBanco.reduce((s,c)=>s+saldoEmReais(c),0);
+        const aberto = bancosAbertos.has(banco);
+        const bancoEsc = banco.replace(/'/g,"\\'");
+        return `
+        <div style="margin-bottom:8px;">
+          <div onclick="toggleBanco('${bancoEsc}')" style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--branco);border-radius:var(--r-sm);cursor:pointer;border:0.5px solid var(--borda-2);">
+            <span style="font-size:17px;">🏦</span>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:600;">${banco}</div>
+              <div style="font-size:11px;color:var(--texto-2);">${contasBanco.length} conta${contasBanco.length>1?'s':''} · R$ ${fmt(subtotal)}</div>
+            </div>
+            <span style="font-size:11px;color:var(--texto-3);display:inline-block;transition:transform .15s;transform:rotate(${aberto?90:0}deg);">▶</span>
+          </div>
+          ${aberto ? `<div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">${contasBanco.map(contaCardHtml).join('')}</div>` : ''}
+        </div>`;
+      }).join('');
+    }
+  }
+
   if(arquivadas.length) {
     html += `<div style="margin-top:6px;">
       <div style="font-size:12px;color:var(--texto-2);cursor:pointer;display:flex;align-items:center;gap:5px;padding:6px 2px;" onclick="document.getElementById('c-arquivadas').classList.toggle('open')">
@@ -2175,6 +2219,7 @@ function abrirModalConta(editId=null) {
   document.getElementById('mo-conta-title').textContent = editId?'Editar conta':'Nova conta';
   if(editId) {
     const c = contas.find(c=>c.id===editId);
+    document.getElementById('mo-banco').value = c.banco || inferirBanco(c.nome) || '';
     document.getElementById('mo-nome').value = c.nome;
     document.getElementById('mo-tipo').value = c.tipo;
     document.getElementById('mo-moeda').value = c.moeda || 'BRL';
@@ -2185,6 +2230,7 @@ function abrirModalConta(editId=null) {
     icoContaSel = c.icon;
     document.querySelectorAll('#mo-icons .ic-opt').forEach(o=>o.classList.toggle('sel',o.dataset.ic===c.icon));
   } else {
+    document.getElementById('mo-banco').value='';
     document.getElementById('mo-nome').value='';
     document.getElementById('mo-tipo').value='';
     document.getElementById('mo-moeda').value='BRL';
@@ -2202,6 +2248,26 @@ function abrirModalConta(editId=null) {
 function editarConta(id) { abrirModalConta(id); }
 
 const CORES_CONTA = ['#E1F5EE','#E6F1FB','#FAEEDA','#FAECE7','#FBEAF0','#EAF3DE','#EEEDFE'];
+
+// ── AGRUPAMENTO POR BANCO ──
+const BANCOS_CONHECIDOS = ['Nubank','Inter','Itaú','Itau','Bradesco','Santander','Caixa','Banco do Brasil','PagBank','C6 Bank','C6','BTG Pactual','BTG','PicPay','Mercado Pago','Sicoob','Sicredi','Original','Neon','Next','Will Bank','XP','Rico','Clear','Safra'];
+
+function inferirBanco(nome) {
+  const n = (nome||'').toLowerCase();
+  for (const b of BANCOS_CONHECIDOS) { if (n.includes(b.toLowerCase())) return b; }
+  return null;
+}
+
+function bancoDaConta(c) {
+  return (c.banco && c.banco.trim()) || inferirBanco(c.nome) || 'Outras contas';
+}
+
+let bancosAbertos = new Set();
+function toggleBanco(nome) {
+  if (bancosAbertos.has(nome)) bancosAbertos.delete(nome);
+  else bancosAbertos.add(nome);
+  renderContas();
+}
 
 // ── MOEDAS ──
 // Taxas aproximadas fixas (não são cotação em tempo real — dá pra ajustar aqui se ficarem desatualizadas)
@@ -2227,6 +2293,7 @@ function moedaMudou() {
 }
 
 async function salvarConta() {
+  const banco = document.getElementById('mo-banco').value.trim();
   const nome = document.getElementById('mo-nome').value.trim();
   const tipo = document.getElementById('mo-tipo').value;
   const moeda = document.getElementById('mo-moeda').value;
@@ -2241,11 +2308,11 @@ async function salvarConta() {
     if(!c.criadorId) c.criadorId = c.titular!=='familia' ? c.titular : titContasAtual;
     const novoTitularId = conjunta ? null : c.criadorId;
     const { error } = await sb.from('contas').update({
-      nome, tipo: tipo||c.tipo, saldo, icon: icoContaSel, moeda,
+      nome, tipo: tipo||c.tipo, saldo, icon: icoContaSel, moeda, banco: banco||null,
       moeda_simbolo: moeda==='custom'?moedaSimbolo:null, inativa, titular_id: novoTitularId
     }).eq('id', contaEditId);
     if(error) { toast('Não foi possível salvar a conta. Tente de novo.', true); return; }
-    c.nome=nome; c.tipo=tipo||c.tipo; c.saldo=saldo; c.icon=icoContaSel; c.moeda=moeda; c.moedaSimbolo=moeda==='custom'?moedaSimbolo:null; c.inativa=inativa;
+    c.nome=nome; c.tipo=tipo||c.tipo; c.saldo=saldo; c.icon=icoContaSel; c.moeda=moeda; c.moedaSimbolo=moeda==='custom'?moedaSimbolo:null; c.inativa=inativa; c.banco=banco||null;
     c.titular = conjunta ? 'familia' : c.criadorId;
     toast(`Conta "${nome}" atualizada`);
   } else {
@@ -2253,11 +2320,11 @@ async function salvarConta() {
     const cor = CORES_CONTA[contas.length%CORES_CONTA.length];
     const { data, error } = await sb.from('contas').insert({
       family_id: perfilAtual.family_id, titular_id: titularId, criador_id: titContasAtual,
-      nome, tipo: tipo||'Outro', saldo, icon: icoContaSel, pub: true, cor, inativa, moeda,
+      nome, tipo: tipo||'Outro', saldo, icon: icoContaSel, pub: true, cor, inativa, moeda, banco: banco||null,
       moeda_simbolo: moeda==='custom'?moedaSimbolo:null
     }).select().single();
     if(error) { toast('Não foi possível criar a conta. Tente de novo.', true); return; }
-    contas.push({id:data.id,nome,tipo:tipo||'Outro',saldo,icon:icoContaSel,pub:true,cor,titular:conjunta?'familia':titContasAtual,criadorId:titContasAtual,inativa,moeda,moedaSimbolo:moeda==='custom'?moedaSimbolo:null});
+    contas.push({id:data.id,nome,tipo:tipo||'Outro',saldo,icon:icoContaSel,pub:true,cor,titular:conjunta?'familia':titContasAtual,criadorId:titContasAtual,inativa,moeda,moedaSimbolo:moeda==='custom'?moedaSimbolo:null,banco:banco||null});
     toast(`Conta "${nome}" criada!`);
   }
   fecharModais();
@@ -4157,7 +4224,7 @@ async function carregarDadosNuvem() {
   contas = (cs || []).map(c => ({
     id: c.id, nome: c.nome, tipo: c.tipo, saldo: Number(c.saldo), icon: c.icon,
     pub: c.pub, cor: c.cor, titular: c.titular_id || 'familia', criadorId: c.criador_id,
-    inativa: c.inativa, moeda: c.moeda, moedaSimbolo: c.moeda_simbolo
+    inativa: c.inativa, moeda: c.moeda, moedaSimbolo: c.moeda_simbolo, banco: c.banco
   }));
 
   transacoes = (txs || []).map(t => {
