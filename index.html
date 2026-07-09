@@ -18,6 +18,7 @@
   <link rel="icon" type="image/png" href="icon.png">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -537,6 +538,82 @@
   </style>
 </head>
 <body>
+
+<!-- ══════════════════════════════════════
+     TELA — LOGIN / CADASTRO
+══════════════════════════════════════ -->
+<div id="t-auth" style="display:none;position:fixed;inset:0;background:var(--cinza-bg);z-index:1001;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;">
+  <div style="width:72px;height:72px;border-radius:20px;background:var(--verde);display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+    <svg width="36" height="36" viewBox="0 0 16 16" fill="none"><path d="M8 2L13 5V11L8 14L3 11V5Z" fill="white" opacity="0.9"/></svg>
+  </div>
+  <div style="font-size:22px;font-weight:500;margin-bottom:8px;text-align:center;" id="auth-titulo">Entrar no FinFamília</div>
+  <div style="font-size:14px;color:var(--texto-2);text-align:center;line-height:1.6;margin-bottom:24px;" id="auth-sub">Entre com seu e-mail e senha para acessar os dados da sua família.</div>
+
+  <div style="width:100%;max-width:380px;display:flex;flex-direction:column;gap:12px;">
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <label style="font-size:12px;font-weight:500;color:var(--texto-2);">E-mail</label>
+      <input type="email" id="auth-email" placeholder="voce@email.com" autocomplete="email"
+        style="width:100%;padding:12px 14px;border:0.5px solid var(--borda-2);border-radius:var(--r-sm);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;background:var(--branco);">
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <label style="font-size:12px;font-weight:500;color:var(--texto-2);">Senha</label>
+      <input type="password" id="auth-senha" placeholder="mínimo 6 caracteres" autocomplete="current-password"
+        style="width:100%;padding:12px 14px;border:0.5px solid var(--borda-2);border-radius:var(--r-sm);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;background:var(--branco);">
+    </div>
+    <div id="auth-erro" style="display:none;font-size:12px;color:var(--coral-600);background:var(--coral-100);padding:10px 12px;border-radius:var(--r-sm);"></div>
+
+    <button onclick="submeterAuth()" id="auth-btn" style="width:100%;padding:14px;background:var(--verde);color:white;border:none;border-radius:var(--r-sm);font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px;">
+      Entrar
+    </button>
+
+    <button onclick="alternarModoAuth()" id="auth-alternar" style="width:100%;padding:12px;background:transparent;color:var(--texto-2);border:none;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;">
+      Ainda não tem conta? Criar conta
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     TELA — CRIAR OU ENTRAR EM FAMÍLIA
+══════════════════════════════════════ -->
+<div id="t-familia-setup" style="display:none;position:fixed;inset:0;background:var(--cinza-bg);z-index:1000;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;">
+  <div style="width:72px;height:72px;border-radius:20px;background:var(--verde);display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+    <svg width="36" height="36" viewBox="0 0 16 16" fill="none"><path d="M8 2L13 5V11L8 14L3 11V5Z" fill="white" opacity="0.9"/></svg>
+  </div>
+  <div style="font-size:22px;font-weight:500;margin-bottom:8px;text-align:center;">Quase lá!</div>
+  <div style="font-size:14px;color:var(--texto-2);text-align:center;line-height:1.6;margin-bottom:24px;">Crie a família no FinFamília ou entre em uma que já existe com o código de convite.</div>
+
+  <div style="width:100%;max-width:380px;display:flex;gap:8px;margin-bottom:16px;background:var(--branco);padding:4px;border-radius:var(--r-sm);border:0.5px solid var(--borda-2);">
+    <button onclick="alternarModoFamilia('criar')" id="fam-tab-criar" style="flex:1;padding:10px;border:none;border-radius:6px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;background:var(--verde);color:white;">Criar família</button>
+    <button onclick="alternarModoFamilia('entrar')" id="fam-tab-entrar" style="flex:1;padding:10px;border:none;border-radius:6px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;background:transparent;color:var(--texto-2);">Entrar com código</button>
+  </div>
+
+  <div style="width:100%;max-width:380px;display:flex;flex-direction:column;gap:12px;">
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <label style="font-size:12px;font-weight:500;color:var(--texto-2);">Seu nome</label>
+      <input type="text" id="fam-nome-pessoa" placeholder="Como quer ser chamado(a)"
+        style="width:100%;padding:12px 14px;border:0.5px solid var(--borda-2);border-radius:var(--r-sm);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;background:var(--branco);">
+    </div>
+
+    <div id="fam-campo-nome-familia" style="display:flex;flex-direction:column;gap:6px;">
+      <label style="font-size:12px;font-weight:500;color:var(--texto-2);">Nome da família</label>
+      <input type="text" id="fam-nome-familia" placeholder="Ex: Família Silva"
+        style="width:100%;padding:12px 14px;border:0.5px solid var(--borda-2);border-radius:var(--r-sm);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;background:var(--branco);">
+    </div>
+
+    <div id="fam-campo-codigo" style="display:none;flex-direction:column;gap:6px;">
+      <label style="font-size:12px;font-weight:500;color:var(--texto-2);">Código de convite</label>
+      <input type="text" id="fam-codigo" placeholder="Ex: a1b2c3" style="text-transform:lowercase;"
+        style="width:100%;padding:12px 14px;border:0.5px solid var(--borda-2);border-radius:var(--r-sm);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;background:var(--branco);">
+      <div style="font-size:11px;color:var(--texto-3);">Peça esse código para quem já usa o FinFamília na sua família.</div>
+    </div>
+
+    <div id="fam-erro" style="display:none;font-size:12px;color:var(--coral-600);background:var(--coral-100);padding:10px 12px;border-radius:var(--r-sm);"></div>
+
+    <button onclick="submeterFamilia()" id="fam-btn" style="width:100%;padding:14px;background:var(--verde);color:white;border:none;border-radius:var(--r-sm);font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px;">
+      Criar família
+    </button>
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════
      TELA 0 — CONFIGURAÇÃO (primeira vez)
@@ -2637,13 +2714,29 @@ function renderPerfil() {
         <div style="font-size:11px;color:var(--texto-2);">Limpar demonstração e começar uso real</div>
       </div>
     </div>`+
-    `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;">
-      <span style="font-size:18px;">🔜</span>
+    (familiaAtual ? `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:0.5px solid var(--borda);cursor:pointer;" onclick="copiarCodigoConvite()">
+      <span style="font-size:18px;">👨‍👩‍👧</span>
       <div style="flex:1;">
-        <div style="font-size:13px;color:var(--texto-3);">Em breve: sincronização entre celulares</div>
-        <div style="font-size:11px;color:var(--texto-3);">Cada família terá uma chave de acesso compartilhada para todos os membros verem os mesmos dados, em qualquer aparelho. Também vêm por aí: notificações no WhatsApp e temas.</div>
+        <div style="font-size:13px;">${familiaAtual.nome}</div>
+        <div style="font-size:11px;color:var(--texto-2);">Código de convite: <b>${familiaAtual.codigo_convite}</b> · toque para copiar</div>
+      </div>
+    </div>` : '') +
+    `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;" onclick="sairDaConta()">
+      <span style="font-size:18px;">🚪</span>
+      <div style="flex:1;">
+        <div style="font-size:13px;color:var(--coral-600);">Sair da conta</div>
+        <div style="font-size:11px;color:var(--texto-2);">${usuarioAtual ? usuarioAtual.email : ''}</div>
       </div>
     </div>`;
+}
+
+function copiarCodigoConvite() {
+  if (!familiaAtual) return;
+  navigator.clipboard?.writeText(familiaAtual.codigo_convite).then(()=>{
+    toast('Código copiado! Envie para quem vai entrar na família.');
+  }).catch(()=>{
+    alert('Código de convite: ' + familiaAtual.codigo_convite);
+  });
 }
 
 function toggleFiltroPerfil() {
@@ -3814,6 +3907,178 @@ renderContas();
 renderMetas();
 atualizarSelects();
 verificarSetup();
+
+// ══════════════════════════════════════
+// SUPABASE — LOGIN, CADASTRO E FAMÍLIA
+// ══════════════════════════════════════
+const SUPABASE_URL = 'https://kobbgggesuymfczayiil.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_rZX7CqUjZVG4Hc8W3twAeg_HUSbncaf';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let authModo = 'login'; // 'login' | 'cadastro'
+let famModo = 'criar';  // 'criar' | 'entrar'
+let usuarioAtual = null;   // objeto de auth do Supabase
+let perfilAtual = null;    // linha da tabela profiles
+let familiaAtual = null;   // linha da tabela families
+
+function alternarModoAuth() {
+  authModo = authModo === 'login' ? 'cadastro' : 'login';
+  document.getElementById('auth-titulo').textContent = authModo === 'login' ? 'Entrar no FinFamília' : 'Criar sua conta';
+  document.getElementById('auth-sub').textContent = authModo === 'login'
+    ? 'Entre com seu e-mail e senha para acessar os dados da sua família.'
+    : 'Crie sua conta para começar a usar o FinFamília com sua família.';
+  document.getElementById('auth-btn').textContent = authModo === 'login' ? 'Entrar' : 'Criar conta';
+  document.getElementById('auth-alternar').textContent = authModo === 'login' ? 'Ainda não tem conta? Criar conta' : 'Já tem conta? Entrar';
+  document.getElementById('auth-erro').style.display = 'none';
+}
+
+function mostrarErroAuth(msg) {
+  const el = document.getElementById('auth-erro');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+async function submeterAuth() {
+  const email = document.getElementById('auth-email').value.trim();
+  const senha = document.getElementById('auth-senha').value;
+  if (!email || !senha) { mostrarErroAuth('Preencha e-mail e senha.'); return; }
+  if (senha.length < 6) { mostrarErroAuth('A senha precisa ter ao menos 6 caracteres.'); return; }
+
+  const btn = document.getElementById('auth-btn');
+  btn.disabled = true;
+  btn.textContent = 'Aguarde...';
+  document.getElementById('auth-erro').style.display = 'none';
+
+  try {
+    let resp;
+    if (authModo === 'login') {
+      resp = await sb.auth.signInWithPassword({ email, password: senha });
+    } else {
+      resp = await sb.auth.signUp({ email, password: senha });
+    }
+    if (resp.error) { mostrarErroAuth(traduzirErroAuth(resp.error.message)); return; }
+    if (!resp.data.session && authModo === 'cadastro') {
+      mostrarErroAuth('Conta criada! Verifique seu e-mail para confirmar antes de entrar.');
+      return;
+    }
+    usuarioAtual = resp.data.user;
+    await verificarPerfil();
+  } catch (e) {
+    mostrarErroAuth('Não foi possível conectar. Verifique sua internet.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = authModo === 'login' ? 'Entrar' : 'Criar conta';
+  }
+}
+
+function traduzirErroAuth(msg) {
+  if (msg.includes('Invalid login credentials')) return 'E-mail ou senha incorretos.';
+  if (msg.includes('already registered')) return 'Este e-mail já tem uma conta. Tente entrar.';
+  if (msg.includes('Password should be')) return 'Senha muito curta (mínimo 6 caracteres).';
+  return msg;
+}
+
+async function verificarPerfil() {
+  const { data: perfil } = await sb.from('profiles').select('*').eq('id', usuarioAtual.id).maybeSingle();
+  if (perfil) {
+    perfilAtual = perfil;
+    const { data: fam } = await sb.from('families').select('*').eq('id', perfil.family_id).maybeSingle();
+    familiaAtual = fam || null;
+    document.getElementById('t-auth').style.display = 'none';
+    document.getElementById('t-familia-setup').style.display = 'none';
+  } else {
+    document.getElementById('t-auth').style.display = 'none';
+    document.getElementById('fam-nome-pessoa').value = '';
+    document.getElementById('t-familia-setup').style.display = 'flex';
+  }
+}
+
+function alternarModoFamilia(modo) {
+  famModo = modo;
+  const tabCriar = document.getElementById('fam-tab-criar');
+  const tabEntrar = document.getElementById('fam-tab-entrar');
+  if (modo === 'criar') {
+    tabCriar.style.background = 'var(--verde)'; tabCriar.style.color = 'white';
+    tabEntrar.style.background = 'transparent'; tabEntrar.style.color = 'var(--texto-2)';
+    document.getElementById('fam-campo-nome-familia').style.display = 'flex';
+    document.getElementById('fam-campo-codigo').style.display = 'none';
+    document.getElementById('fam-btn').textContent = 'Criar família';
+  } else {
+    tabEntrar.style.background = 'var(--verde)'; tabEntrar.style.color = 'white';
+    tabCriar.style.background = 'transparent'; tabCriar.style.color = 'var(--texto-2)';
+    document.getElementById('fam-campo-nome-familia').style.display = 'none';
+    document.getElementById('fam-campo-codigo').style.display = 'flex';
+    document.getElementById('fam-btn').textContent = 'Entrar na família';
+  }
+  document.getElementById('fam-erro').style.display = 'none';
+}
+
+function mostrarErroFamilia(msg) {
+  const el = document.getElementById('fam-erro');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+async function submeterFamilia() {
+  const nomePessoa = document.getElementById('fam-nome-pessoa').value.trim();
+  if (!nomePessoa) { mostrarErroFamilia('Diga como quer ser chamado(a).'); return; }
+
+  const btn = document.getElementById('fam-btn');
+  btn.disabled = true;
+  btn.textContent = 'Aguarde...';
+  document.getElementById('fam-erro').style.display = 'none';
+
+  try {
+    let familyId;
+    if (famModo === 'criar') {
+      const nomeFamilia = document.getElementById('fam-nome-familia').value.trim() || 'Minha Família';
+      const { data: novaFamilia, error: erroFamilia } = await sb.from('families').insert({ nome: nomeFamilia }).select().single();
+      if (erroFamilia) { mostrarErroFamilia('Não foi possível criar a família. Tente de novo.'); return; }
+      familyId = novaFamilia.id;
+      familiaAtual = novaFamilia;
+    } else {
+      const codigo = document.getElementById('fam-codigo').value.trim().toLowerCase();
+      if (!codigo) { mostrarErroFamilia('Digite o código de convite.'); return; }
+      const { data: familiaEncontrada } = await sb.from('families').select('*').eq('codigo_convite', codigo).maybeSingle();
+      if (!familiaEncontrada) { mostrarErroFamilia('Código não encontrado. Confira com quem te enviou.'); return; }
+      familyId = familiaEncontrada.id;
+      familiaAtual = familiaEncontrada;
+    }
+
+    const corIdx = 0;
+    const { data: novoPerfil, error: erroPerfil } = await sb.from('profiles').insert({
+      id: usuarioAtual.id, family_id: familyId, nome: nomePessoa,
+      cor: CORES_MEMBRO[corIdx][0], cor_tx: CORES_MEMBRO[corIdx][1]
+    }).select().single();
+    if (erroPerfil) { mostrarErroFamilia('Não foi possível salvar seu perfil. Tente de novo.'); return; }
+
+    perfilAtual = novoPerfil;
+    document.getElementById('t-familia-setup').style.display = 'none';
+    toast(famModo === 'criar' ? 'Família criada! Bem-vindo(a) ao FinFamília.' : 'Você entrou na família!');
+  } catch (e) {
+    mostrarErroFamilia('Não foi possível conectar. Verifique sua internet.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = famModo === 'criar' ? 'Criar família' : 'Entrar na família';
+  }
+}
+
+async function sairDaConta() {
+  if (!confirm('Sair da sua conta do FinFamília?')) return;
+  await sb.auth.signOut();
+  location.reload();
+}
+
+async function verificarAutenticacao() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    usuarioAtual = session.user;
+    await verificarPerfil();
+  } else {
+    document.getElementById('t-auth').style.display = 'flex';
+  }
+}
+verificarAutenticacao();
 </script>
   <!-- PWA Service Worker -->
   <script>
