@@ -540,6 +540,22 @@
 <body>
 
 <!-- ══════════════════════════════════════
+     MODAL — CONFIRMAÇÃO GENÉRICA (exclusões)
+══════════════════════════════════════ -->
+<div class="modal-over" id="mo-confirmar" style="z-index:1200;" onclick="fecharConfirmar()">
+  <div class="modal-box" onclick="event.stopPropagation()" style="max-width:340px;">
+    <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:8px 4px 4px;">
+      <div style="width:48px;height:48px;border-radius:50%;background:var(--coral-100);display:flex;align-items:center;justify-content:center;font-size:22px;">🗑</div>
+      <div id="conf-titulo" style="font-size:15px;font-weight:500;line-height:1.5;"></div>
+      <div style="display:flex;gap:10px;width:100%;margin-top:8px;">
+        <button onclick="fecharConfirmar()" style="flex:1;padding:12px;background:var(--branco);color:var(--texto-2);border:0.5px solid var(--borda-2);border-radius:var(--r-sm);font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;">Cancelar</button>
+        <button onclick="confirmarAcaoPendente()" style="flex:1;padding:12px;background:var(--coral-600);color:white;border:none;border-radius:var(--r-sm);font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">Excluir</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
      TELA — LOGIN / CADASTRO
 ══════════════════════════════════════ -->
 <div id="t-auth" style="display:none;position:fixed;inset:0;background:var(--cinza-bg);z-index:1001;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;">
@@ -564,6 +580,17 @@
 
     <button onclick="submeterAuth()" id="auth-btn" style="width:100%;padding:14px;background:var(--verde);color:white;border:none;border-radius:var(--r-sm);font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px;">
       Entrar
+    </button>
+
+    <div style="display:flex;align-items:center;gap:10px;margin:4px 0;">
+      <div style="flex:1;height:1px;background:var(--borda-2);"></div>
+      <div style="font-size:11px;color:var(--texto-3);">ou</div>
+      <div style="flex:1;height:1px;background:var(--borda-2);"></div>
+    </div>
+
+    <button onclick="loginComGoogle()" id="auth-google-btn" style="width:100%;padding:12px;background:var(--branco);color:var(--texto);border:0.5px solid var(--borda-2);border-radius:var(--r-sm);font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.6C29.6 35 26.9 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.6 5.1C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.3-4.1 5.7l6.6 5.6C41.9 35.9 44 30.4 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+      Continuar com Google
     </button>
 
     <button onclick="alternarModoAuth()" id="auth-alternar" style="width:100%;padding:12px;background:transparent;color:var(--texto-2);border:none;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;">
@@ -1535,6 +1562,29 @@
      SCRIPT
 ══════════════════════════════════════ -->
 <script>
+// ══════════════════════════
+// CONFIRMAÇÃO GENÉRICA (exclusões)
+// ══════════════════════════
+let acaoPendente = null;
+
+function pedirConfirmacao(mensagem, acao) {
+  document.getElementById('conf-titulo').textContent = mensagem;
+  acaoPendente = acao;
+  document.getElementById('mo-confirmar').classList.add('open');
+}
+
+function fecharConfirmar() {
+  document.getElementById('mo-confirmar').classList.remove('open');
+  acaoPendente = null;
+}
+
+function confirmarAcaoPendente() {
+  const acao = acaoPendente;
+  document.getElementById('mo-confirmar').classList.remove('open');
+  acaoPendente = null;
+  if (acao) acao();
+}
+
 // ── UTILITÁRIOS ──
 const fmt  = v => new Intl.NumberFormat('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}).format(v);
 const fmt0 = v => new Intl.NumberFormat('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0}).format(v);
@@ -1572,24 +1622,26 @@ function carregarDados() {
 }
 
 function resetarDados() {
-  if(!confirm('Apagar TODOS os lançamentos, contas, metas e membros de demonstração? Esta ação não pode ser desfeita. Use para começar o uso real da família.')) return;
-  contas = [];
-  transacoes = [];
-  metas = [];
-  recorrentes = [];
-  desafios = [];
-  conquistas = [];
-  membros = [{ id:'m'+Date.now(), nome: localStorage.getItem('ff_nome') || 'Eu', cor:CORES_MEMBRO[0][0], corTx:CORES_MEMBRO[0][1] }];
-  titContasAtual = membros[0].id;
-  dashMembro = 'familia';
-  salvarDados();
-  atualizarSelects();
-  renderMembrosChips();
-  renderDash();
-  renderContas();
-  renderMetas();
-  renderPerfil();
-  toast('Dados apagados! Adicione os membros da família no Perfil.');
+  pedirConfirmacao('Apagar TODOS os lançamentos, contas, metas e membros de demonstração? Esta ação não pode ser desfeita. Use para começar o uso real da família.', () => {
+    contas = [];
+    transacoes = [];
+    metas = [];
+    recorrentes = [];
+    desafios = [];
+    conquistas = [];
+    const nomeAtual = (perfilAtual && perfilAtual.nome) || localStorage.getItem('ff_nome') || 'Eu';
+    membros = [{ id:'m'+Date.now(), nome: nomeAtual, cor:CORES_MEMBRO[0][0], corTx:CORES_MEMBRO[0][1] }];
+    titContasAtual = membros[0].id;
+    dashMembro = 'familia';
+    salvarDados();
+    atualizarSelects();
+    renderMembrosChips();
+    renderDash();
+    renderContas();
+    renderMetas();
+    renderPerfil();
+    toast('Dados apagados! Adicione os membros da família no Perfil.');
+  });
 }
 
 // salva também ao sair do app
@@ -1670,16 +1722,18 @@ function renomearMembro(id) {
 function excluirMembro(id) {
   if(membros.length <= 1) { toast('É preciso ter ao menos um membro.', true); return; }
   const m = membros.find(x=>x.id===id);
-  if(!confirm(`Excluir ${m.nome}? As contas e lançamentos dele também serão excluídos.`)) return;
-  membros = membros.filter(x=>x.id!==id);
-  contas = contas.filter(c=>c.titular!==id);
-  transacoes = transacoes.filter(t=>t.titular!==id);
-  desafios = desafios.filter(d=>d.membroId!==id);
-  conquistas = conquistas.filter(c=>c.membroId!==id);
-  if(titContasAtual===id) titContasAtual = membros[0].id;
-  if(dashMembro===id) dashMembro = 'familia';
-  renderPerfil(); renderMembrosChips(); renderDash(); renderContas();
-  toast(`${m.nome} removido da família.`);
+  if(!m) return;
+  pedirConfirmacao(`Excluir ${m.nome}? As contas e lançamentos dele também serão excluídos.`, () => {
+    membros = membros.filter(x=>x.id!==id);
+    contas = contas.filter(c=>c.titular!==id);
+    transacoes = transacoes.filter(t=>t.titular!==id);
+    desafios = desafios.filter(d=>d.membroId!==id);
+    conquistas = conquistas.filter(c=>c.membroId!==id);
+    if(titContasAtual===id) titContasAtual = membros[0].id;
+    if(dashMembro===id) dashMembro = 'familia';
+    renderPerfil(); renderMembrosChips(); renderDash(); renderContas();
+    toast(`${m.nome} removido da família.`);
+  });
 }
 
 function editarNomeUsuario() {
@@ -2111,10 +2165,12 @@ function togVisib(id) {
 
 function excluirConta(id) {
   const c = contas.find(c=>c.id===id);
-  if(!confirm(`Excluir "${c.nome}"? Os lançamentos serão perdidos.`)) return;
-  contas = contas.filter(c=>c.id!==id);
-  renderContas();
-  toast(`Conta "${c.nome}" excluída`);
+  if(!c) return;
+  pedirConfirmacao(`Excluir "${c.nome}"? Os lançamentos serão perdidos.`, () => {
+    contas = contas.filter(c=>c.id!==id);
+    renderContas();
+    toast(`Conta "${c.nome}" excluída`);
+  });
 }
 
 function verLanc(id) {
@@ -2496,10 +2552,11 @@ function editarMeta(id) {
 function excluirMeta(id) {
   const m = metas.find(x=>x.id===id);
   if(!m) return;
-  if(!confirm(`Excluir a meta "${m.nome}"?`)) return;
-  metas = metas.filter(x=>x.id!==id);
-  renderMetas();
-  toast(`Meta "${m.nome}" excluída.`);
+  pedirConfirmacao(`Excluir a meta "${m.nome}"?`, () => {
+    metas = metas.filter(x=>x.id!==id);
+    renderMetas();
+    toast(`Meta "${m.nome}" excluída.`);
+  });
 }
 
 function abrirModalMeta() {
@@ -2596,10 +2653,11 @@ function progredirDesafio(id) {
 function excluirDesafio(id) {
   const d = desafios.find(d=>d.id===id);
   if(!d) return;
-  if(!confirm(`Excluir o desafio "${d.titulo}"?`)) return;
-  desafios = desafios.filter(x=>x.id!==id);
-  renderDesafios();
-  toast('Desafio removido.');
+  pedirConfirmacao(`Excluir o desafio "${d.titulo}"?`, () => {
+    desafios = desafios.filter(x=>x.id!==id);
+    renderDesafios();
+    toast('Desafio removido.');
+  });
 }
 
 function unidadeLabel(u, v) {
@@ -3355,14 +3413,15 @@ function editarCategoria(idx) {
 
 function excluirCategoria(idx) {
   const nome = categorias[idx];
-  if(!confirm(`Excluir a categoria "${nome}"? Os lançamentos com ela passarão para "Outro".`)) return;
-  transacoes.forEach(t => { if(t.cat === nome) t.cat = 'Outro'; });
-  categorias.splice(idx, 1);
-  if(!categorias.includes('Outro')) categorias.push('Outro');
-  renderCatLista();
-  atualizarSelects();
-  renderPerfil();
-  toast(`Categoria "${nome}" excluída.`);
+  pedirConfirmacao(`Excluir a categoria "${nome}"? Os lançamentos com ela passarão para "Outro".`, () => {
+    transacoes.forEach(t => { if(t.cat === nome) t.cat = 'Outro'; });
+    categorias.splice(idx, 1);
+    if(!categorias.includes('Outro')) categorias.push('Outro');
+    renderCatLista();
+    atualizarSelects();
+    renderPerfil();
+    toast(`Categoria "${nome}" excluída.`);
+  });
 }
 
 function atualizarSelects() {
@@ -3450,7 +3509,7 @@ function salvarLanc() {
 }
 
 function excluirLanc() {
-  if(!confirm('Excluir este lançamento?')) return;
+  pedirConfirmacao('Excluir este lançamento?', () => {
   const t = transacoes.find(t=>t.id===lancEditId);
   if(t) {
     const c = contas.find(c=>c.nome===t.conta && c.titular===t.titular);
@@ -3462,6 +3521,7 @@ function excluirLanc() {
   renderTxList('d-txs', transacoes.slice(0,4));
   renderDash();
   toast('Lançamento excluído.');
+  });
 }
 
 // ── FIN LANÇA DE VERDADE ──
@@ -3938,6 +3998,15 @@ function mostrarErroAuth(msg) {
   el.style.display = 'block';
 }
 
+async function loginComGoogle() {
+  document.getElementById('auth-erro').style.display = 'none';
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + window.location.pathname }
+  });
+  if (error) mostrarErroAuth('Não foi possível conectar com o Google. Tente novamente.');
+}
+
 async function submeterAuth() {
   const email = document.getElementById('auth-email').value.trim();
   const senha = document.getElementById('auth-senha').value;
@@ -4063,10 +4132,11 @@ async function submeterFamilia() {
   }
 }
 
-async function sairDaConta() {
-  if (!confirm('Sair da sua conta do FinFamília?')) return;
-  await sb.auth.signOut();
-  location.reload();
+function sairDaConta() {
+  pedirConfirmacao('Sair da sua conta do FinFamília?', async () => {
+    await sb.auth.signOut();
+    location.reload();
+  });
 }
 
 async function verificarAutenticacao() {
