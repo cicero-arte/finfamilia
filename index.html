@@ -1007,7 +1007,7 @@
       <div style="font-size:12px;color:var(--texto-3);">✏️ Toque para editar</div>
     </div>
     <div style="display:flex;flex-direction:column;gap:2px;">
-      <div style="font-size:12px;font-weight:500;color:var(--texto-2);margin-bottom:8px;">Membros da família</div>
+      <div style="font-size:12px;font-weight:500;color:var(--texto-2);margin-bottom:8px;">Membros da família <span id="p-familia-nome" style="font-weight:400;color:var(--texto-3);"></span></div>
       <div style="background:var(--branco);border:0.5px solid var(--borda);border-radius:var(--r-md);overflow:hidden;">
         <div id="p-membros"></div>
       </div>
@@ -2838,6 +2838,9 @@ function renderPerfil() {
 
   const filtroPerfil = localStorage.getItem('ff_filtro_perfil') !== 'false';
 
+  // nome da família, junto do título "Membros da família"
+  document.getElementById('p-familia-nome').textContent = familiaAtual ? `· ${familiaAtual.nome}` : '';
+
   // membros da família (vindos de contas reais)
   document.getElementById('p-membros').innerHTML = membros.map(m=>{
     const souEu = perfilAtual && m.id === perfilAtual.id;
@@ -2848,9 +2851,12 @@ function renderPerfil() {
       ${souEu ? `<button onclick="renomearMembro('${m.id}')" style="padding:5px 10px;border:0.5px solid var(--borda-2);border-radius:var(--r-sm);background:var(--branco);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--texto-2);">✏️</button>` : ''}
     </div>`;
   }).join('') +
-    `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;" onclick="adicionarMembro()">
+    `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;" onclick="copiarCodigoConvite()">
       <span style="font-size:18px;">➕</span>
-      <div style="flex:1;font-size:13px;color:var(--verde);font-weight:500;">Convidar alguém pra família</div></div>`;
+      <div style="flex:1;">
+        <div style="font-size:13px;color:var(--verde);font-weight:500;">Convidar alguém pra família</div>
+        ${familiaAtual ? `<div style="font-size:11px;color:var(--texto-2);">Código: <b>${familiaAtual.codigo_convite}</b> · toque para copiar</div>` : ''}
+      </div></div>`;
 
   // configurações — apenas o que funciona
   document.getElementById('p-configs').innerHTML =
@@ -2884,13 +2890,6 @@ function renderPerfil() {
         <div style="font-size:11px;color:var(--texto-2);">Limpar demonstração e começar uso real</div>
       </div>
     </div>`+
-    (familiaAtual ? `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:0.5px solid var(--borda);cursor:pointer;" onclick="copiarCodigoConvite()">
-      <span style="font-size:18px;">👨‍👩‍👧</span>
-      <div style="flex:1;">
-        <div style="font-size:13px;">${familiaAtual.nome}</div>
-        <div style="font-size:11px;color:var(--texto-2);">Código de convite: <b>${familiaAtual.codigo_convite}</b> · toque para copiar</div>
-      </div>
-    </div>` : '') +
     `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;" onclick="sairDaConta()">
       <span style="font-size:18px;">🚪</span>
       <div style="flex:1;">
