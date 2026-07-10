@@ -812,6 +812,7 @@
       <div class="topbar-title">Minhas contas</div>
       <div class="topbar-sub">Gerencie e configure cada conta</div>
     </div>
+    <button onclick="toggleSaldoOculto()" id="c-eye-btn" class="btn-icon" style="flex-shrink:0;" aria-label="Ocultar saldo"></button>
     <div class="av-pill" onclick="ciclaTitular()" id="av-pill">
       <div class="av-sm" style="background:#9FE1CB;color:#085041" id="av-sig">AN</div>
       <span id="av-nome">Ana</span>
@@ -941,6 +942,9 @@
       <div class="topbar-title">Assistente Fin</div>
       <div class="topbar-sub">Consultor financeiro com IA</div>
     </div>
+    <button class="btn-icon" onclick="finNovaConversa()" title="Nova conversa">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"/></svg>
+    </button>
   </div>
 
   <!-- sinal de IA -->
@@ -1770,7 +1774,9 @@ function toggleSaldoOculto() {
   saldoOculto = !saldoOculto;
   localStorage.setItem('ff_saldo_oculto', saldoOculto ? 'true' : 'false');
   document.getElementById('d-eye-btn').innerHTML = iconeOlho(saldoOculto);
+  document.getElementById('c-eye-btn').innerHTML = iconeOlho(saldoOculto);
   renderDash();
+  renderContas();
 }
 function iconeOlho(oculto) {
   return oculto
@@ -2070,9 +2076,9 @@ function renderContas() {
   const sai = txsMes.filter(t=>t.tipo==='s').reduce((s,t)=>s+t.val,0);
 
   document.getElementById('c-label').textContent = `Saldo total de ${m.nome}`;
-  document.getElementById('c-saldo').textContent = 'R$ '+fmt0(saldo);
-  document.getElementById('c-ent').textContent = 'R$ '+fmt0(ent);
-  document.getElementById('c-sai').textContent = 'R$ '+fmt0(sai);
+  document.getElementById('c-saldo').textContent = money0(saldo);
+  document.getElementById('c-ent').textContent = money0(ent);
+  document.getElementById('c-sai').textContent = money0(sai);
   document.getElementById('c-qnt').textContent = cs.length;
 
   const contaCardHtml = c => `
@@ -2084,8 +2090,8 @@ function renderContas() {
           <div class="conta-tipo-txt">${c.tipo}</div>
         </div>
         <div>
-          <div class="conta-saldo-txt">${simboloMoeda(c)} ${fmt(c.saldo)}</div>
-          ${c.moeda && c.moeda!=='BRL' ? `<div style="font-size:11px;color:var(--texto-3);text-align:right;">≈ R$ ${fmt(saldoEmReais(c))}</div>` : ''}
+          <div class="conta-saldo-txt">${saldoOculto ? (simboloMoeda(c)+' ••••') : (simboloMoeda(c)+' '+fmt(c.saldo))}</div>
+          ${c.moeda && c.moeda!=='BRL' ? `<div style="font-size:11px;color:var(--texto-3);text-align:right;">≈ ${money(saldoEmReais(c))}</div>` : ''}
           <div class="conta-visib ${c.pub?'pub':'priv'}">${c.pub?'👁 Visível':'🔒 Privada'}</div>
         </div>
       </div>
@@ -2133,7 +2139,7 @@ function renderContas() {
             <span style="font-size:17px;">🏦</span>
             <div style="flex:1;">
               <div style="font-size:13px;font-weight:600;">${banco}</div>
-              <div style="font-size:11px;color:var(--texto-2);">${contasBanco.length} conta${contasBanco.length>1?'s':''} · R$ ${fmt(subtotal)}</div>
+              <div style="font-size:11px;color:var(--texto-2);">${contasBanco.length} conta${contasBanco.length>1?'s':''} · ${money(subtotal)}</div>
             </div>
             <span style="font-size:11px;color:var(--texto-3);display:inline-block;transition:transform .15s;transform:rotate(${aberto?90:0}deg);">▶</span>
           </div>
@@ -3720,6 +3726,31 @@ function finDetectarCategoria(txt) {
   return 'Outro';
 }
 
+// Decide se uma mensagem é REALMENTE um comando de lançamento (ex: "gastei R$50 no mercado")
+// e não uma pergunta, dúvida ou conversa sobre finanças (ex: "deveria pagar o financiamento com LCI?").
+// Critérios, todos obrigatórios:
+// 1. Não é uma pergunta (sem "?")
+// 2. É curta — comandos de lançamento são frases objetivas, não parágrafos de contexto
+// 3. Não contém palavras típicas de dúvida/consultoria/planejamento
+// 4. Começa com um verbo de lançamento claro ("gastei", "paguei", "comprei", "recebi", "lança")
+// 5. Contém um valor monetário em formato inequívoco (R$ 50, 50 reais, etc.)
+function finPareceLancamento(txt) {
+  const t = txt.trim();
+  if(/\?/.test(t)) return false;
+  if(t.length > 140) return false;
+
+  const palavrasDeDuvida = /estrat[ée]gia|financiamento|presta[çc][ãa]o|saldo devedor|quitar|resgat|invest(ir|imento)|lci|lca|cdb|tesouro|melhor op[çc][ãa]o|o que (voc[êe]|vc) (acha|sugere|recomenda)|vale a pena|compensa|deveria|poderia|seria melhor|d[úu]vida|pensei em|qual.*melhor|me ajuda a decidir|o que fazer/i;
+  if(palavrasDeDuvida.test(t)) return false;
+
+  const verboDeComando = /^(gastei|paguei|comprei|recebi|lan[çc]ar?|lan[çc]a)\b/i;
+  if(!verboDeComando.test(t)) return false;
+
+  const valorClaro = /\d+(?:[.,]\d+)?/;
+  if(!valorClaro.test(t)) return false;
+
+  return true;
+}
+
 function finLancarTransacao(txt) {
   // extrai valor
   const valorMatch = txt.match(/r?\$?\s*(\d+(?:[\.,]\d+)?)/i);
@@ -3798,7 +3829,9 @@ TRANSAÇÕES RECENTES:\n${txResumo}
 METAS:\n${metasResumo}
 
 INSTRUÇÕES IMPORTANTES:
-- Se o usuário disser que gastou ou pagou algo (ex: "gastei R$50 em polpas de fruta no Nubank"), confirme que o lançamento foi registrado, informe o valor, a descrição e a conta. Responda de forma positiva e breve.
+- Um lançamento SÓ foi registrado de verdade quando a mensagem do usuário vier marcada com "[SISTEMA: lançamento registrado — ...]" no final. Nesse caso, confirme o registro de forma positiva e breve, citando valor, descrição e conta.
+- Se o usuário mencionar gastos, pagamentos, dívidas, financiamentos ou dúvidas sobre o que fazer com o dinheiro SEM essa marcação de sistema, é uma pergunta ou reflexão — NÃO diga que algo foi lançado ou registrado. Apenas responda à dúvida com uma análise ou opinião financeira.
+- NUNCA registre, resuma ou repita como se fosse um "lançamento" ou "transação" um trecho de dúvida, planejamento ou conversa livre do usuário. Essas mensagens não devem aparecer como se fossem gastos reais.
 - Se o usuário perguntar sobre gastos, saldos ou metas, use os dados acima para responder com precisão.
 - Se o usuário pedir sugestão de investimento, analise o saldo disponível e sugira opções adequadas ao mercado brasileiro.
 - Seja objetivo. Use no máximo 2 parágrafos curtos. Pode usar emojis com moderação.`;
@@ -3807,7 +3840,12 @@ INSTRUÇÕES IMPORTANTES:
 function initFin() {
   if(finIniciado) return;
   finIniciado = true;
+  finIniciarChat();
+}
+
+function finIniciarChat() {
   finHistorico = [];
+  document.getElementById('fin-chat').innerHTML = '';
   finMsgAdd('Fin', 'Olá! Sou o Fin 👋 Seu assistente financeiro com IA. Pergunte sobre seus gastos, metas ou peça sugestões de investimento. Pode digitar ou usar o microfone.', false);
   const sugs = document.getElementById('fin-sugs');
   sugs.innerHTML = FIN_SUGS.map(s =>
@@ -3815,6 +3853,13 @@ function initFin() {
       style="background:var(--branco);border:0.5px solid var(--borda-2);border-radius:20px;padding:6px 14px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;color:var(--texto-2);"
     >${s}</button>`
   ).join('');
+}
+
+function finNovaConversa() {
+  pedirConfirmacao('Iniciar uma nova conversa com o Fin? O histórico atual desta conversa será limpo (seus lançamentos e dados financeiros continuam salvos normalmente).', () => {
+    finIniciarChat();
+    toast('Nova conversa iniciada');
+  });
 }
 
 function finMsgAdd(quem, txt, isUser) {
@@ -3850,10 +3895,9 @@ async function finEnviar() {
   inp.value = '';
   finMsgAdd('Você', txt, true);
 
-  // tenta lançar de verdade se for pedido de transação
-  const isLancamento = /gast|pag|comprei|recebi|lança|lançar|gastei|paguei/i.test(txt);
+  // tenta lançar de verdade SOMENTE se for um comando claro e direto de lançamento
   let lancInfo = null;
-  if(isLancamento) {
+  if(finPareceLancamento(txt)) {
     lancInfo = finLancarTransacao(txt);
   }
 
@@ -4144,6 +4188,7 @@ function verificarSetup() {
 
 // ── INIT ──
 document.getElementById('d-eye-btn').innerHTML = iconeOlho(saldoOculto);
+document.getElementById('c-eye-btn').innerHTML = iconeOlho(saldoOculto);
 
 // ══════════════════════════════════════
 // SUPABASE — LOGIN, CADASTRO E FAMÍLIA
