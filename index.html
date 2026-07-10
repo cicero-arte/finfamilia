@@ -4283,7 +4283,16 @@ function traduzirErroAuth(msg) {
 }
 
 async function verificarPerfil() {
-  const { data: perfil } = await sb.from('profiles').select('*').eq('id', usuarioAtual.id).maybeSingle();
+  const { data: perfil, error } = await sb.from('profiles').select('*').eq('id', usuarioAtual.id).maybeSingle();
+  if (error) {
+    // Erro de consulta (rede, permissão, etc.) — NUNCA tratar como "usuário sem família".
+    // Isso evita mandar alguém que já tem conta pra tela de criar família por engano.
+    document.getElementById('t-auth').style.display = 'none';
+    document.getElementById('t-familia-setup').style.display = 'none';
+    toast('Não foi possível carregar seus dados agora. Verifique sua internet e recarregue a página. Não crie uma família nova — seus dados estão salvos.', true);
+    console.error('Erro ao buscar perfil:', error);
+    return;
+  }
   if (perfil) {
     perfilAtual = perfil;
     const { data: fam } = await sb.from('families').select('*').eq('id', perfil.family_id).maybeSingle();
@@ -4395,6 +4404,22 @@ async function submeterFamilia() {
   btn.disabled = true;
   btn.textContent = 'Aguarde...';
   document.getElementById('fam-erro').style.display = 'none';
+
+  // Trava de segurança: confirma de novo, na hora, que esse usuário realmente não tem perfil ainda,
+  // antes de criar qualquer coisa nova. Evita duplicar família/perfil por causa de um erro passageiro.
+  const { data: perfilExistente, error: erroChecagem } = await sb.from('profiles').select('id').eq('id', usuarioAtual.id).maybeSingle();
+  if (erroChecagem) {
+    mostrarErroFamilia('Não foi possível confirmar seus dados agora. Recarregue a página e tente de novo — não continue se você já tem uma família cadastrada.');
+    btn.disabled = false;
+    btn.textContent = famModo === 'criar' ? 'Criar família' : 'Entrar na família';
+    return;
+  }
+  if (perfilExistente) {
+    mostrarErroFamilia('Você já tem uma família cadastrada. Recarregue a página — não é necessário criar outra.');
+    btn.disabled = false;
+    btn.textContent = famModo === 'criar' ? 'Criar família' : 'Entrar na família';
+    return;
+  }
 
   try {
     let familyId;
