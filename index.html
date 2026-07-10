@@ -813,7 +813,6 @@
       <div class="topbar-title">Minhas contas</div>
       <div class="topbar-sub">Gerencie e configure cada conta</div>
     </div>
-    <button onclick="toggleSaldoOculto()" id="c-eye-btn" class="btn-icon" style="flex-shrink:0;" aria-label="Ocultar saldo"></button>
     <div class="av-pill" onclick="ciclaTitular()" id="av-pill">
       <div class="av-sm" style="background:#9FE1CB;color:#085041" id="av-sig">AN</div>
       <span id="av-nome">Ana</span>
@@ -823,7 +822,10 @@
   <div class="scroll-body">
     <!-- hero titular -->
     <div class="hero">
-      <div class="hero-label" id="c-label">Saldo total de Ana</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <div class="hero-label" id="c-label">Saldo total de Ana</div>
+        <button onclick="toggleSaldoOculto()" id="c-eye-btn" style="background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;flex-shrink:0;" aria-label="Ocultar saldo"></button>
+      </div>
       <div class="hero-valor" id="c-saldo">R$ •••</div>
       <div class="hero-stats">
         <div class="hero-stat"><div class="hero-stat-label">Entradas</div><div class="hero-stat-val" id="c-ent">R$ •••</div></div>
