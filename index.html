@@ -1606,7 +1606,9 @@ function confirmarAcaoPendente() {
 
 // ── UTILITÁRIOS ──
 const fmt  = v => new Intl.NumberFormat('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}).format(v);
-const fmt0 = v => new Intl.NumberFormat('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0}).format(v);
+// fmt0 mantido por compatibilidade com o restante do código, mas agora sempre exibe os centavos,
+// seguindo o padrão brasileiro de moeda (ex: R$ 1.000,00) — nunca arredonda valores financeiros.
+const fmt0 = v => new Intl.NumberFormat('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}).format(v);
 let toastT;
 function toast(msg, err=false) {
   const t = document.getElementById('toast');
