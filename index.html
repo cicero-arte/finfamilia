@@ -929,7 +929,9 @@
     </div>
   </div>
   <div class="scroll-body">
-    <div class="tx-list" id="extrato-txs"></div>
+    <div class="card">
+      <div class="tx-list" id="extrato-txs"></div>
+    </div>
   </div>
 </div>
 
@@ -1959,7 +1961,7 @@ function renderSelecaoContas(m, cs, deselecionadas) {
     return `<div onclick="toggleContaSelecionada('${c.id}')" style="display:flex;align-items:center;gap:8px;padding:7px 6px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:500;" onmouseover="this.style.background='var(--cinza-100)'" onmouseout="this.style.background='transparent'">
       <div style="width:16px;height:16px;border-radius:5px;border:1.5px solid ${marcada?'var(--verde)':'var(--cinza-200)'};background:${marcada?'var(--verde)':'var(--branco)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:10px;">${marcada?'✓':''}</div>
       <span style="flex:1;">${c.icon} ${c.nome}${c.titular==='familia'?' 👨‍👩‍👧':''}</span>
-      <span style="font-size:11px;color:var(--texto-3);">${simboloMoeda(c)} ${fmt0(c.saldo)}</span>
+      <span style="font-size:11px;color:var(--texto-3);">${saldoOculto ? '••••' : simboloMoeda(c)+' '+fmt0(c.saldo)}</span>
     </div>`;
   }).join('');
 }
@@ -1994,7 +1996,7 @@ function renderPizza(slices, total) {
     options:{
       cutout:'60%',responsive:false,
       plugins:{legend:{display:false},tooltip:{
-        callbacks:{label:ctx=>`R$ ${fmt0(ctx.parsed)}`}
+        callbacks:{label:ctx=>saldoOculto ? 'R$ ••••' : `R$ ${fmt0(ctx.parsed)}`}
       }},
       onClick:(_,els)=>{
         if(!els.length)return;
@@ -2450,7 +2452,7 @@ function renderLancContas() {
       <div class="cc-ico">${c.icon}</div>
       <div class="cc-nome">${c.nome}</div>
       <div class="cc-val" style="font-size:10px;color:var(--texto-2);">${nomeMembro(c.titular)}</div>
-      <div style="font-size:10px;font-weight:500;color:${c.id===lancConta?'var(--verde-600)':'var(--texto-3)'};">${simboloMoeda(c)} ${fmt0(c.saldo)}</div>
+      <div style="font-size:10px;font-weight:500;color:${c.id===lancConta?'var(--verde-600)':'var(--texto-3)'};">${saldoOculto ? '••••' : simboloMoeda(c)+' '+fmt0(c.saldo)}</div>
     </div>`).join('');
   const contaAtual = cs.find(c=>c.id===lancConta);
   if(contaAtual) document.getElementById('l-val-prefix').textContent = simboloMoeda(contaAtual);
@@ -3661,7 +3663,7 @@ function abrirEditarLanc(id) {
   document.getElementById('ml-cat').value  = t.cat;
   // popula select de contas
   const sel = document.getElementById('ml-conta');
-  sel.innerHTML = contas.map(c=>`<option value="${c.id}" ${c.nome===t.conta&&c.titular===t.titular?'selected':''}>${c.nome} (${nomeMembro(c.titular)}) — ${simboloMoeda(c)} ${fmt0(c.saldo)}</option>`).join('');
+  sel.innerHTML = contas.map(c=>`<option value="${c.id}" ${c.nome===t.conta&&c.titular===t.titular?'selected':''}>${c.nome} (${nomeMembro(c.titular)}) — ${saldoOculto ? '••••' : simboloMoeda(c)+' '+fmt0(c.saldo)}</option>`).join('');
   document.getElementById('mo-lanc').classList.add('open');
 }
 
