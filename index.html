@@ -917,6 +917,23 @@
 </div>
 
 <!-- ══════════════════════════════════════
+     TELA 3.5 — EXTRATO (lista de lançamentos)
+══════════════════════════════════════ -->
+<div class="tela" id="t-extrato">
+  <div class="topbar">
+    <button class="btn-icon btn-back" onclick="ir(extratoVoltarPara)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    </button>
+    <div class="topbar-info">
+      <div class="topbar-title" id="extrato-titulo">Lançamentos</div>
+    </div>
+  </div>
+  <div class="scroll-body">
+    <div class="tx-list" id="extrato-txs"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
      TELA 4 — METAS
 ══════════════════════════════════════ -->
 <div class="tela" id="t-metas">
@@ -2204,8 +2221,7 @@ function verLanc(id) {
   const c = contas.find(c=>c.id===id);
   if(!c) return;
   const txs = transacoes.filter(t=>t.conta===c.nome && t.titular===c.titular);
-  lancListaCustom = { txs, titulo: `Lançamentos — ${c.nome} (${txs.length})` };
-  navIr(null,'t-lanc');
+  abrirExtrato(txs, `Lançamentos — ${c.nome} (${txs.length})`, 't-contas');
 }
 
 function abrirModalConta(editId=null) {
@@ -2266,6 +2282,7 @@ function toggleBanco(nome) {
 
 // ── COMPARTILHAR O APP COM TERCEIROS ──
 let terceirosAberto = false;
+let codigoConviteVisivel = false;
 function urlDoApp() {
   return location.origin + location.pathname;
 }
@@ -2372,7 +2389,14 @@ function selIco(el) {
 // ══════════════════════════
 // LANÇAMENTO
 // ══════════════════════════
-let lancListaCustom = null; // {txs, titulo} — usado por "Ver todas" e "Lançamentos da conta"
+let extratoVoltarPara = 't-dash';
+
+function abrirExtrato(txs, titulo, voltarPara) {
+  extratoVoltarPara = voltarPara || 't-dash';
+  document.getElementById('extrato-titulo').textContent = titulo;
+  renderTxList('extrato-txs', txs);
+  ir('t-extrato');
+}
 
 function initLanc() {
   lancTipo='e';
@@ -2389,19 +2413,12 @@ function initLanc() {
   const hoje = new Date();
   document.getElementById('l-sub').textContent = hoje.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
   renderLancContas();
-  if(lancListaCustom) {
-    renderTxList('l-txs', lancListaCustom.txs);
-    document.getElementById('l-list-title').textContent = lancListaCustom.titulo;
-    lancListaCustom = null;
-  } else {
-    renderTxList('l-txs', transacoes.slice(0,5));
-    document.getElementById('l-list-title').textContent='Últimos lançamentos';
-  }
+  renderTxList('l-txs', transacoes.slice(0,5));
+  document.getElementById('l-list-title').textContent='Últimos lançamentos';
 }
 
 function verTodasTx() {
-  lancListaCustom = { txs: transacoes, titulo: `Todos os lançamentos (${transacoes.length})` };
-  navIr(null,'t-lanc');
+  abrirExtrato(transacoes, `Todos os lançamentos (${transacoes.length})`, 't-dash');
 }
 
 function setTipo(t) {
@@ -2866,7 +2883,9 @@ function renderPerfil() {
       <span style="font-size:18px;">➕</span>
       <div style="flex:1;">
         <div style="font-size:13px;color:var(--verde);font-weight:500;">Convidar alguém pra família</div>
-        ${familiaAtual ? `<div style="font-size:11px;color:var(--texto-2);">Código: <b>${familiaAtual.codigo_convite}</b> · toque para copiar</div>` : ''}
+        ${familiaAtual ? `<div style="font-size:11px;color:var(--texto-2);display:flex;align-items:center;gap:6px;">Código: <b style="letter-spacing:1px;">${codigoConviteVisivel ? familiaAtual.codigo_convite : '••••••'}</b> · toque para copiar
+          <span onclick="event.stopPropagation();toggleCodigoConvite();" style="cursor:pointer;color:var(--texto-3);font-size:13px;" aria-label="${codigoConviteVisivel ? 'Ocultar código' : 'Mostrar código'}">${codigoConviteVisivel ? '🙈' : '👁'}</span>
+        </div>` : ''}
       </div></div>`;
 
   // configurações — apenas o que funciona
@@ -2935,6 +2954,11 @@ function renderPerfil() {
         <div style="font-size:11px;color:var(--texto-2);">${usuarioAtual ? usuarioAtual.email : ''}</div>
       </div>
     </div>`;
+}
+
+function toggleCodigoConvite() {
+  codigoConviteVisivel = !codigoConviteVisivel;
+  renderPerfil();
 }
 
 function copiarCodigoConvite() {
