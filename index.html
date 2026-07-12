@@ -3223,6 +3223,8 @@ function calcRendaAlvo() {
 
 // ── SIMULADOR DE INVESTIMENTOS (capital + aporte + prazo → comparação de opções) ──
 let simUltimoResultado = [];
+let simPoupanca = null;
+const POUPANCA_RENTAB_PCT = 0.0617; // ~0,5% a.m. (regra vigente com Selic acima de 8,5% a.a.) — aproximado, TR varia
 let simAbertos = new Set();
 
 function calcularIRSimulado(ativo, meses, ganho) {
@@ -3270,6 +3272,14 @@ function calcSimulador() {
     return { ativo, totalInvestido, ganhoBruto, imposto, valorLiquido };
   }).sort((a,b) => b.valorLiquido - a.valorLiquido);
 
+  // Poupança: comparador fixo, isento de IR, sem imposto — só pra mostrar quanto se perde ficando parado nela
+  {
+    const im = Math.pow(1 + POUPANCA_RENTAB_PCT, 1/12) - 1;
+    const fv = capital * Math.pow(1 + im, meses) + aporte * ((Math.pow(1 + im, meses) - 1) / im);
+    const totalInvestido = capital + aporte * meses;
+    simPoupanca = { totalInvestido, ganhoBruto: fv - totalInvestido, imposto: 0, valorLiquido: fv };
+  }
+
   renderSimResultado();
 }
 
@@ -3286,7 +3296,38 @@ function renderSimResultado() {
   const corRisco = { 1: 'var(--verde)', 2: '#378ADD', 3: 'var(--coral)' };
   const labelRisco = { 1: 'Baixo risco', 2: 'Risco moderado', 3: 'Risco mais alto' };
 
-  el.innerHTML = simUltimoResultado.map(r => {
+  let poupancaHtml = '';
+  if (perfilInvestidor === 'Conservador' && simPoupanca) {
+    const aberto = simAbertos.has('POUPANCA');
+    const melhor = simUltimoResultado.find(r => r.ativo.risco <= 1) || simUltimoResultado[0];
+    const diferenca = melhor.valorLiquido - simPoupanca.valorLiquido;
+    poupancaHtml = `
+    <div style="border:0.5px dashed var(--texto-3);border-radius:var(--r-sm);overflow:hidden;background:var(--cinza-100);">
+      <div onclick="toggleSim('POUPANCA')" style="display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;">
+        <span style="width:9px;height:9px;border-radius:50%;background:var(--texto-3);flex-shrink:0;" title="Comparador"></span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;">Poupança<span style="font-size:10px;font-weight:500;color:var(--texto-2);background:var(--cinza-200);padding:1px 6px;border-radius:8px;">só para comparar</span></div>
+          <div style="font-size:11px;color:var(--texto-2);">~7,4% a.a. (0,5% a.m. + TR)</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:14px;font-weight:600;color:var(--texto-2);">${money0(simPoupanca.valorLiquido)}</div>
+          <div style="font-size:10px;color:var(--texto-3);">líquido final</div>
+        </div>
+        <span style="font-size:11px;color:var(--texto-3);display:inline-block;transition:transform .15s;transform:rotate(${aberto?90:0}deg);flex-shrink:0;">▶</span>
+      </div>
+      ${aberto ? `
+      <div style="padding:12px 14px;background:var(--branco);display:flex;flex-direction:column;gap:6px;font-size:12px;">
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--texto-2);">Total investido</span><span style="font-weight:500;">${money(simPoupanca.totalInvestido)}</span></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--texto-2);">Rendimento bruto</span><span style="font-weight:500;">${money(simPoupanca.ganhoBruto)}</span></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--texto-2);">Imposto</span><span style="font-weight:500;color:var(--verde-600);">Isento</span></div>
+        <div style="height:0.5px;background:rgba(0,0,0,0.08);margin:2px 0;"></div>
+        <div style="display:flex;justify-content:space-between;"><span style="font-weight:600;">Valor líquido final</span><span style="font-weight:600;">${money(simPoupanca.valorLiquido)}</span></div>
+        <div style="font-size:11px;color:var(--coral-600);margin-top:4px;line-height:1.4;">📉 Deixando na poupança, você teria <strong>${money(diferenca)} a menos</strong> do que na opção mais rentável da lista abaixo (${melhor.ativo.nome}) — e ambas têm baixo risco.</div>
+      </div>` : ''}
+    </div>`;
+  }
+
+  el.innerHTML = poupancaHtml + simUltimoResultado.map(r => {
     const a = r.ativo;
     const aberto = simAbertos.has(a.sigla);
     const alinhado = perfilInvestidor === 'Conservador' ? a.risco<=1 : perfilInvestidor === 'Moderado' ? a.risco<=2 : true;
