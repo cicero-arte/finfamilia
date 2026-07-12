@@ -1266,6 +1266,14 @@
         <div id="calc-sim-aviso" style="display:none;font-size:12px;color:var(--texto-3);margin-top:2px;">⚠️ Defina seu perfil na aba <strong>Meu perfil</strong> para ver o destaque das opções mais alinhadas a você.</div>
         <div id="calc-sim-result" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;"></div>
       </div>
+
+      <div class="card">
+        <div class="card-title">🧭 Como investir meu capital?</div>
+        <div style="font-size:13px;color:var(--texto-2);margin-bottom:12px;line-height:1.5;">Informe quanto você tem disponível para investir agora e veja uma sugestão de diversificação de acordo com o seu perfil.</div>
+        <div class="field"><label>Capital disponível para investir (R$)</label><input type="number" id="calc-aloc-capital" placeholder="Ex: 10000" oninput="calcAlocacaoCapital()"></div>
+        <div id="calc-aloc-aviso" style="display:none;font-size:12px;color:var(--texto-3);margin-top:2px;">⚠️ Defina seu perfil na aba <strong>Meu perfil</strong> primeiro — a sugestão de diversificação depende dele.</div>
+        <div id="calc-aloc-result" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;"></div>
+      </div>
     </div>
 
     <!-- ── ABA: MEU PERFIL ── -->
@@ -3358,6 +3366,63 @@ function renderSimResultado() {
   }).join('');
 }
 
+// ── COMO INVESTIR: DIVERSIFICAÇÃO POR PERFIL ──
+// Percentuais de alocação por categoria, definidos com base em práticas comuns de carteira por perfil de risco.
+// Câmbio puro e cripto (BTC/USDT) ficam de fora da alocação padrão — são posições táticas, não uma base de carteira.
+const ALOCACAO_PERFIL = {
+  Conservador: [
+    { pct: 0.70, categoria: 'Renda Fixa', emoji: '🏦', sugestoes: ['LCI', 'CDB110'] },
+    { pct: 0.30, categoria: 'FIIs de papel (baixa volatilidade)', emoji: '🏢', sugestoes: ['MXRF11'] },
+  ],
+  Moderado: [
+    { pct: 0.50, categoria: 'Renda Fixa', emoji: '🏦', sugestoes: ['LCI', 'CDB110'] },
+    { pct: 0.25, categoria: 'FIIs', emoji: '🏢', sugestoes: ['MXRF11', 'KNRI11'] },
+    { pct: 0.15, categoria: 'Ações', emoji: '📈', sugestoes: ['ITUB4'] },
+    { pct: 0.10, categoria: 'ETF internacional', emoji: '🌎', sugestoes: ['BOVA11'] },
+  ],
+  Arrojado: [
+    { pct: 0.30, categoria: 'Renda Fixa', emoji: '🏦', sugestoes: ['CDB110', 'LCI'] },
+    { pct: 0.20, categoria: 'FIIs', emoji: '🏢', sugestoes: ['MXRF11', 'KNRI11'] },
+    { pct: 0.30, categoria: 'Ações', emoji: '📈', sugestoes: ['ITUB4', 'WEGE3'] },
+    { pct: 0.20, categoria: 'ETF internacional', emoji: '🌎', sugestoes: ['IVVB11', 'BOVA11'] },
+  ],
+};
+
+function calcAlocacaoCapital() {
+  const capital = parseFloat(document.getElementById('calc-aloc-capital')?.value) || 0;
+  const el = document.getElementById('calc-aloc-result');
+  const aviso = document.getElementById('calc-aloc-aviso');
+
+  if (!perfilInvestidor) {
+    aviso.style.display = 'block';
+    el.innerHTML = '';
+    return;
+  }
+  aviso.style.display = 'none';
+  if (!capital) { el.innerHTML = ''; return; }
+
+  const plano = ALOCACAO_PERFIL[perfilInvestidor] || ALOCACAO_PERFIL.Moderado;
+
+  el.innerHTML = `
+    <div style="font-size:12px;color:var(--texto-2);margin-bottom:2px;">Diversificação sugerida para perfil <strong>${perfilInvestidor}</strong>:</div>
+    ${plano.map(f => `
+      <div style="background:var(--cinza-100);border-radius:var(--r-sm);padding:12px 14px;display:flex;align-items:center;gap:12px;">
+        <span style="font-size:22px;">${f.emoji}</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:500;">${f.categoria}</div>
+          <div style="font-size:11px;color:var(--texto-2);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap;">
+            ${f.sugestoes.map(sigla => `<span onclick="abrirAtivo('${sigla}')" style="cursor:pointer;background:var(--azul-100);color:var(--azul-600);padding:2px 7px;border-radius:8px;font-weight:500;">${sigla}</span>`).join('')}
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:15px;font-weight:500;color:var(--verde-600);">${(f.pct*100).toFixed(0)}%</div>
+          <div style="font-size:11px;color:var(--texto-2);">${money0(capital*f.pct)}</div>
+        </div>
+      </div>`).join('')}
+    <div style="font-size:11px;color:var(--texto-3);margin-top:4px;line-height:1.4;">Sugestão educativa de diversificação, não é recomendação individualizada. Toque nas siglas para ver detalhes de cada ativo.</div>
+  `;
+}
+
 // ── QUIZ DE PERFIL ──
 function renderQuiz() {
   const el = document.getElementById('inv2-quiz');
@@ -3401,8 +3466,9 @@ function calcularPerfil() {
     </div>`;
   toast(`Perfil ${perfil} definido! Indicações personalizadas já disponíveis.`);
 
-  // Se o simulador já tinha um resultado calculado antes de mudar o perfil, atualiza na hora
+  // Se o simulador ou a alocação já tinham resultado calculado antes de mudar o perfil, atualiza na hora
   if (simUltimoResultado.length) calcSimulador();
+  if (document.getElementById('calc-aloc-capital')?.value) calcAlocacaoCapital();
 }
 
 // ── MONITORAR ──
