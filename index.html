@@ -3400,6 +3400,9 @@ function calcularPerfil() {
       <button class="btn-prim g" style="margin-top:16px;" onclick="inv2Tab('ind')">Ver indicações para meu perfil</button>
     </div>`;
   toast(`Perfil ${perfil} definido! Indicações personalizadas já disponíveis.`);
+
+  // Se o simulador já tinha um resultado calculado antes de mudar o perfil, atualiza na hora
+  if (simUltimoResultado.length) calcSimulador();
 }
 
 // ── MONITORAR ──
