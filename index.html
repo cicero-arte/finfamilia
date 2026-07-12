@@ -676,6 +676,22 @@
 </div>
 
 <!-- ══════════════════════════════════════
+     AVISO — TERMOS DE USO / NATUREZA EDUCATIVA
+══════════════════════════════════════ -->
+<div id="t-termos" style="display:none;position:fixed;inset:0;background:var(--cinza-bg);z-index:1000;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;">
+  <div style="width:72px;height:72px;border-radius:20px;background:var(--amber-100);display:flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:32px;">📋</div>
+  <div style="font-size:20px;font-weight:500;margin-bottom:16px;text-align:center;">Antes de continuar</div>
+  <div style="width:100%;max-width:380px;background:var(--branco);border-radius:var(--r-md);padding:16px;font-size:13px;color:var(--texto-2);line-height:1.6;max-height:45vh;overflow-y:auto;">
+    <p style="margin-bottom:10px;">O FinFamília é uma ferramenta <strong>pessoal e familiar</strong>, sem fins comerciais — não é um produto oferecido ao público nem uma consultoria financeira registrada.</p>
+    <p style="margin-bottom:10px;">As informações e sugestões sobre investimentos aqui são <strong>educativas e genéricas</strong>. Elas não constituem recomendação individualizada de um consultor de valores mobiliários registrado na CVM.</p>
+    <p style="margin-bottom:0;">Toda decisão de investimento é de <strong>sua responsabilidade</strong>. Investimentos envolvem risco, inclusive de perda do capital investido.</p>
+  </div>
+  <button onclick="aceitarTermos()" style="width:100%;max-width:380px;padding:14px;background:var(--verde);color:white;border:none;border-radius:var(--r-sm);font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:20px;">
+    Entendi e concordo
+  </button>
+</div>
+
+<!-- ══════════════════════════════════════
      TELA 1 — DASHBOARD
 ══════════════════════════════════════ -->
 <div class="tela ativa" id="t-dash">
@@ -4439,6 +4455,17 @@ function verificarSetup() {
   }
 }
 
+function verificarTermos() {
+  if (!localStorage.getItem('ff_termos_aceitos')) {
+    document.getElementById('t-termos').style.display = 'flex';
+  }
+}
+
+function aceitarTermos() {
+  localStorage.setItem('ff_termos_aceitos', 'true');
+  document.getElementById('t-termos').style.display = 'none';
+}
+
 // ── INIT ──
 document.getElementById('d-eye-btn').innerHTML = iconeOlho(saldoOculto);
 document.getElementById('c-eye-btn').innerHTML = iconeOlho(saldoOculto);
@@ -4550,6 +4577,7 @@ async function verificarPerfil() {
     document.getElementById('t-auth').style.display = 'none';
     document.getElementById('t-familia-setup').style.display = 'none';
     verificarSetup();
+    verificarTermos();
     await carregarDadosNuvem();
     atualizarSelects();
     await processarRecorrentes();
@@ -4701,6 +4729,7 @@ async function submeterFamilia() {
     const { data: famCompleta } = await sb.from('families').select('*').eq('id', familyId).maybeSingle();
     familiaAtual = famCompleta || { id: familyId, nome: '' };
     verificarSetup();
+    verificarTermos();
 
     if (familiaNova) {
       const categoriasPadrao = ['Alimentação','Padaria','Restaurante','Saúde','Farmácia','Transporte','Lazer','Moradia','Salário','Investimento','Educação','Vestuário','Assinaturas','Pets','Outro'];
