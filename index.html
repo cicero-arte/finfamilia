@@ -1249,6 +1249,23 @@
         <div class="field"><label>Renda mensal alvo (R$)</label><input type="number" id="calc-alvo" placeholder="Ex: 3000" oninput="calcRendaAlvo()"></div>
         <div id="calc-alvo-result" style="display:none;flex-direction:column;gap:8px;margin-top:4px;"></div>
       </div>
+      <div class="card">
+        <div class="card-title">📈 Simulador: onde investir e quanto posso ter?</div>
+        <div style="font-size:13px;color:var(--texto-2);margin-bottom:12px;line-height:1.5;">Informe capital, prazo e aporte mensal para comparar o rendimento líquido estimado em diferentes opções.</div>
+        <div class="field"><label>Capital inicial (R$)</label><input type="number" id="calc-sim-capital" placeholder="Ex: 5000" oninput="calcSimulador()"></div>
+        <div class="two-col">
+          <div class="field"><label>Prazo</label><input type="number" id="calc-sim-prazo" placeholder="Ex: 24" oninput="calcSimulador()"></div>
+          <div class="field"><label>Unidade</label>
+            <select id="calc-sim-unidade" onchange="calcSimulador()">
+              <option value="1">Meses</option>
+              <option value="12" selected>Anos</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Aporte mensal (R$)</label><input type="number" id="calc-sim-aporte" placeholder="Ex: 300" oninput="calcSimulador()"></div>
+        <div id="calc-sim-aviso" style="display:none;font-size:12px;color:var(--texto-3);margin-top:2px;">⚠️ Defina seu perfil na aba <strong>Meu perfil</strong> para ver o destaque das opções mais alinhadas a você.</div>
+        <div id="calc-sim-result" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;"></div>
+      </div>
     </div>
 
     <!-- ── ABA: MEU PERFIL ── -->
@@ -2999,25 +3016,25 @@ let monitAtivos = JSON.parse(localStorage.getItem('ff_monit') || '[]');
 
 const ATIVOS = [
   // Renda Fixa
-  {sigla:'SELIC',nome:'Tesouro Selic 2027',tipo:'rf',rentab:'12,8% a.a.',liquidez:'D+1',ir:'Regressivo (15-22,5%)',minimo:'R$ 100',risco:1,check:3,badge:'safe',badgeTxt:'Conservador',onde:'Tesouro Direto (qualquer corretora)',desc:'O Tesouro Selic é como uma poupança turbinada do governo. Rende junto com a taxa básica de juros do Brasil (Selic). Praticamente sem risco de perder dinheiro.'},
-  {sigla:'CDB110',nome:'CDB 110% CDI',tipo:'rf',rentab:'13,2% a.a.',liquidez:'D+0',ir:'Regressivo (15-22,5%)',minimo:'R$ 1.000',risco:1,check:3,badge:'hot',badgeTxt:'Mais rentável',onde:'Nubank, Inter, XP, Rico, BTG',desc:'CDB é como um empréstimo que você faz para o banco — e ele te paga juros por isso. Com 110% do CDI, você ganha mais do que a maioria dos fundos. Garantido pelo FGC até R$ 250 mil.'},
-  {sigla:'LCI',nome:'LCI Isenta de IR',tipo:'rf',rentab:'11,2% a.a.',liquidez:'D+30',ir:'Isento de IR',minimo:'R$ 5.000',risco:1,check:3,badge:'safe',badgeTxt:'Sem imposto',onde:'XP, BTG, Itaú, Bradesco, Rico',desc:'LCI financia o mercado imobiliário. A grande vantagem é que pessoas físicas não pagam imposto de renda sobre o rendimento. É como ganhar mais sem fazer nada diferente.'},
-  {sigla:'LCA',nome:'LCA Isenta de IR',tipo:'rf',rentab:'10,9% a.a.',liquidez:'D+90',ir:'Isento de IR',minimo:'R$ 5.000',risco:1,check:3,badge:'safe',badgeTxt:'Agronegócio',onde:'XP, BTG, Sicoob, Sicredi, Rico',desc:'LCA financia o agronegócio brasileiro e também é isenta de IR para pessoas físicas. Similar à LCI, mas voltada para o campo. Ótima para quem quer rentabilidade sem pagar imposto.'},
+  {sigla:'SELIC',rentabPct:0.128,nome:'Tesouro Selic 2027',tipo:'rf',rentab:'12,8% a.a.',liquidez:'D+1',ir:'Regressivo (15-22,5%)',minimo:'R$ 100',risco:1,check:3,badge:'safe',badgeTxt:'Conservador',onde:'Tesouro Direto (qualquer corretora)',desc:'O Tesouro Selic é como uma poupança turbinada do governo. Rende junto com a taxa básica de juros do Brasil (Selic). Praticamente sem risco de perder dinheiro.'},
+  {sigla:'CDB110',rentabPct:0.132,nome:'CDB 110% CDI',tipo:'rf',rentab:'13,2% a.a.',liquidez:'D+0',ir:'Regressivo (15-22,5%)',minimo:'R$ 1.000',risco:1,check:3,badge:'hot',badgeTxt:'Mais rentável',onde:'Nubank, Inter, XP, Rico, BTG',desc:'CDB é como um empréstimo que você faz para o banco — e ele te paga juros por isso. Com 110% do CDI, você ganha mais do que a maioria dos fundos. Garantido pelo FGC até R$ 250 mil.'},
+  {sigla:'LCI',rentabPct:0.112,nome:'LCI Isenta de IR',tipo:'rf',rentab:'11,2% a.a.',liquidez:'D+30',ir:'Isento de IR',minimo:'R$ 5.000',risco:1,check:3,badge:'safe',badgeTxt:'Sem imposto',onde:'XP, BTG, Itaú, Bradesco, Rico',desc:'LCI financia o mercado imobiliário. A grande vantagem é que pessoas físicas não pagam imposto de renda sobre o rendimento. É como ganhar mais sem fazer nada diferente.'},
+  {sigla:'LCA',rentabPct:0.109,nome:'LCA Isenta de IR',tipo:'rf',rentab:'10,9% a.a.',liquidez:'D+90',ir:'Isento de IR',minimo:'R$ 5.000',risco:1,check:3,badge:'safe',badgeTxt:'Agronegócio',onde:'XP, BTG, Sicoob, Sicredi, Rico',desc:'LCA financia o agronegócio brasileiro e também é isenta de IR para pessoas físicas. Similar à LCI, mas voltada para o campo. Ótima para quem quer rentabilidade sem pagar imposto.'},
   // FIIs
-  {sigla:'HGLG11',nome:'CSHG Logística FII',tipo:'fii',rentab:'8,4% div/ano',liquidez:'D+2',ir:'20% sobre ganho de capital',minimo:'R$ 165',risco:2,check:3,badge:'hot',badgeTxt:'Alta liquidez',onde:'Qualquer corretora com acesso à B3',desc:'Imagine que você é dono de um pedacinho de galpões grandes onde ficam produtos da Amazon, Mercado Livre e outros. Esse fundo tem vários desses galpões espalhados pelo Brasil e divide o aluguel com você todo mês.'},
-  {sigla:'MXRF11',nome:'Maxi Renda FII',tipo:'fii',rentab:'12,1% div/ano',liquidez:'D+2',ir:'Isento sobre dividendos',minimo:'R$ 11',risco:2,check:3,badge:'new',badgeTxt:'Dividendo alto',onde:'XP, Clear, Rico, Inter, BTG',desc:'É um fundo que investe em papéis de imóveis (CRIs) — como empréstimos para construtoras. Paga dividendos mensais isentos de imposto. Com menos de R$ 15 você já entra.'},
-  {sigla:'KNRI11',nome:'Kinea Renda Imobiliária',tipo:'fii',rentab:'7,8% div/ano',liquidez:'D+2',ir:'Isento sobre dividendos',minimo:'R$ 280',risco:2,check:3,badge:'safe',badgeTxt:'Portfólio sólido',onde:'XP, Clear, Rico, BTG, Inter',desc:'Um dos maiores e mais sólidos fundos imobiliários do Brasil. Tem prédios comerciais e galpões de primeira linha. Como se você fosse dono de um pedacinho de vários prédios corporativos nas principais cidades.'},
+  {sigla:'HGLG11',rentabPct:0.084,nome:'CSHG Logística FII',tipo:'fii',rentab:'8,4% div/ano',liquidez:'D+2',ir:'20% sobre ganho de capital',minimo:'R$ 165',risco:2,check:3,badge:'hot',badgeTxt:'Alta liquidez',onde:'Qualquer corretora com acesso à B3',desc:'Imagine que você é dono de um pedacinho de galpões grandes onde ficam produtos da Amazon, Mercado Livre e outros. Esse fundo tem vários desses galpões espalhados pelo Brasil e divide o aluguel com você todo mês.'},
+  {sigla:'MXRF11',rentabPct:0.121,nome:'Maxi Renda FII',tipo:'fii',rentab:'12,1% div/ano',liquidez:'D+2',ir:'Isento sobre dividendos',minimo:'R$ 11',risco:2,check:3,badge:'new',badgeTxt:'Dividendo alto',onde:'XP, Clear, Rico, Inter, BTG',desc:'É um fundo que investe em papéis de imóveis (CRIs) — como empréstimos para construtoras. Paga dividendos mensais isentos de imposto. Com menos de R$ 15 você já entra.'},
+  {sigla:'KNRI11',rentabPct:0.078,nome:'Kinea Renda Imobiliária',tipo:'fii',rentab:'7,8% div/ano',liquidez:'D+2',ir:'Isento sobre dividendos',minimo:'R$ 280',risco:2,check:3,badge:'safe',badgeTxt:'Portfólio sólido',onde:'XP, Clear, Rico, BTG, Inter',desc:'Um dos maiores e mais sólidos fundos imobiliários do Brasil. Tem prédios comerciais e galpões de primeira linha. Como se você fosse dono de um pedacinho de vários prédios corporativos nas principais cidades.'},
   // Ações
-  {sigla:'ITUB4',nome:'Itaú Unibanco',tipo:'acoes',rentab:'~15% histórico',liquidez:'D+2',ir:'15% sobre ganho',minimo:'R$ 35',risco:3,check:3,badge:'safe',badgeTxt:'Sólido',onde:'XP, Clear, Rico, Inter, BTG, Toro',desc:'O maior banco privado do Brasil. Existe há mais de 100 anos, tem mais de 50 milhões de clientes e sempre deu lucro. Como ser dono de um pedacinho de um banco muito bem-sucedido.'},
-  {sigla:'WEGE3',nome:'WEG S.A.',tipo:'acoes',rentab:'~20% histórico',liquidez:'D+2',ir:'15% sobre ganho',minimo:'R$ 52',risco:3,check:3,badge:'hot',badgeTxt:'Crescimento',onde:'XP, Clear, Rico, Inter, BTG, Toro',desc:'A WEG fabrica motores elétricos e vende para o mundo inteiro. É uma das empresas mais admiradas do Brasil, cresce todo ano e está se beneficiando da transição para energia limpa.'},
+  {sigla:'ITUB4',rentabPct:0.15,nome:'Itaú Unibanco',tipo:'acoes',rentab:'~15% histórico',liquidez:'D+2',ir:'15% sobre ganho',minimo:'R$ 35',risco:3,check:3,badge:'safe',badgeTxt:'Sólido',onde:'XP, Clear, Rico, Inter, BTG, Toro',desc:'O maior banco privado do Brasil. Existe há mais de 100 anos, tem mais de 50 milhões de clientes e sempre deu lucro. Como ser dono de um pedacinho de um banco muito bem-sucedido.'},
+  {sigla:'WEGE3',rentabPct:0.2,nome:'WEG S.A.',tipo:'acoes',rentab:'~20% histórico',liquidez:'D+2',ir:'15% sobre ganho',minimo:'R$ 52',risco:3,check:3,badge:'hot',badgeTxt:'Crescimento',onde:'XP, Clear, Rico, Inter, BTG, Toro',desc:'A WEG fabrica motores elétricos e vende para o mundo inteiro. É uma das empresas mais admiradas do Brasil, cresce todo ano e está se beneficiando da transição para energia limpa.'},
   // Câmbio/ETF
-  {sigla:'IVVB11',nome:'ETF S&P 500 (Dólar)',tipo:'cambio',rentab:'~12% histórico em USD',liquidez:'D+2',ir:'15% sobre ganho',minimo:'R$ 250',risco:3,check:3,badge:'new',badgeTxt:'Dolarizado',onde:'XP, Clear, Rico, Inter, BTG',desc:'É como comprar um pedaço das 500 maiores empresas dos EUA (Apple, Google, Amazon...) mas pagando em reais. Se o dólar subir, você ganha em dobro. É a forma mais simples de ter dinheiro em dólar.'},
-  {sigla:'BOVA11',nome:'ETF Ibovespa',tipo:'cambio',rentab:'~13% histórico',liquidez:'D+2',ir:'15% sobre ganho',minimo:'R$ 120',risco:3,check:3,badge:'safe',badgeTxt:'Brasil',onde:'XP, Clear, Rico, Inter, BTG, Toro',desc:'Comprar BOVA11 é como comprar um pedaço de todas as maiores empresas da Bolsa brasileira ao mesmo tempo. Quando o Brasil vai bem, você ganha. Muito mais fácil do que escolher ação por ação.'},
+  {sigla:'IVVB11',rentabPct:0.12,nome:'ETF S&P 500 (Dólar)',tipo:'cambio',rentab:'~12% histórico em USD',liquidez:'D+2',ir:'15% sobre ganho',minimo:'R$ 250',risco:3,check:3,badge:'new',badgeTxt:'Dolarizado',onde:'XP, Clear, Rico, Inter, BTG',desc:'É como comprar um pedaço das 500 maiores empresas dos EUA (Apple, Google, Amazon...) mas pagando em reais. Se o dólar subir, você ganha em dobro. É a forma mais simples de ter dinheiro em dólar.'},
+  {sigla:'BOVA11',rentabPct:0.13,nome:'ETF Ibovespa',tipo:'cambio',rentab:'~13% histórico',liquidez:'D+2',ir:'15% sobre ganho',minimo:'R$ 120',risco:3,check:3,badge:'safe',badgeTxt:'Brasil',onde:'XP, Clear, Rico, Inter, BTG, Toro',desc:'Comprar BOVA11 é como comprar um pedaço de todas as maiores empresas da Bolsa brasileira ao mesmo tempo. Quando o Brasil vai bem, você ganha. Muito mais fácil do que escolher ação por ação.'},
   // Forex
   {sigla:'USD/BRL',nome:'Dólar Americano',tipo:'forex',rentab:'Varia com câmbio',liquidez:'D+2',ir:'15% sobre ganho',minimo:'R$ 500',risco:3,check:3,badge:'hot',badgeTxt:'Proteção cambial',onde:'Wise, Remessa Online, XP, BTG, Avenue',desc:'Comprar dólar é uma forma de proteger seu dinheiro quando o Brasil passa por turbulências. Se o real cair, seu dólar vale mais em reais. Muita gente usa como reserva de valor internacional.'},
   {sigla:'EUR/BRL',nome:'Euro',tipo:'forex',rentab:'Varia com câmbio',liquidez:'D+2',ir:'15% sobre ganho',minimo:'R$ 500',risco:3,check:3,badge:'safe',badgeTxt:'Diversificação',onde:'Wise, Remessa Online, BTG, Avenue',desc:'O euro é a moeda de 20 países europeus. Investir em euro é diversificar fora do dólar. Útil para quem planeja viagens à Europa ou quer exposição à economia europeia.'},
   {sigla:'BTC',nome:'Bitcoin',tipo:'forex',rentab:'Alta volatilidade',liquidez:'D+1',ir:'15% sobre ganho acima de R$ 35k/mês',minimo:'R$ 50',risco:3,check:3,badge:'hot',badgeTxt:'Alto risco/retorno',onde:'Mercado Bitcoin, Binance, Coinbase, Bitget',desc:'Bitcoin é uma moeda digital que não pertence a nenhum governo. É limitado a 21 milhões de unidades no mundo inteiro. Muita gente usa como reserva de valor, como se fosse "ouro digital". Atenção: o preço pode oscilar muito em pouco tempo.'},
-  {sigla:'USDT',nome:'Dólar Digital (Stablecoin)',tipo:'forex',rentab:'~5% a.a. em plataformas',liquidez:'D+0',ir:'15% sobre ganho',minimo:'R$ 100',risco:2,check:3,badge:'new',badgeTxt:'Estável em USD',onde:'Binance, Bitget, Mercado Bitcoin',desc:'O USDT é como um dólar digital — cada USDT vale sempre US$ 1,00. Você pode manter seu dinheiro em dólar sem precisar abrir conta no exterior. Algumas plataformas pagam rendimento sobre ele.'},
+  {sigla:'USDT',rentabPct:0.05,nome:'Dólar Digital (Stablecoin)',tipo:'forex',rentab:'~5% a.a. em plataformas',liquidez:'D+0',ir:'15% sobre ganho',minimo:'R$ 100',risco:2,check:3,badge:'new',badgeTxt:'Estável em USD',onde:'Binance, Bitget, Mercado Bitcoin',desc:'O USDT é como um dólar digital — cada USDT vale sempre US$ 1,00. Você pode manter seu dinheiro em dólar sem precisar abrir conta no exterior. Algumas plataformas pagam rendimento sobre ele.'},
 ];
 
 const QUIZ = [
@@ -3202,6 +3219,102 @@ function calcRendaAlvo() {
           <div style="font-size:10px;color:var(--texto-2);">patrimônio necessário</div>
         </div>
       </div>`;
+  }).join('');
+}
+
+// ── SIMULADOR DE INVESTIMENTOS (capital + aporte + prazo → comparação de opções) ──
+let simUltimoResultado = [];
+let simAbertos = new Set();
+
+function calcularIRSimulado(ativo, meses, ganho) {
+  if (ganho <= 0) return 0;
+  const ir = ativo.ir;
+  if (ir.includes('Isento')) return 0;
+  if (ir.includes('Regressivo')) {
+    let aliquota;
+    if (meses <= 6) aliquota = 0.225;
+    else if (meses <= 12) aliquota = 0.20;
+    else if (meses <= 24) aliquota = 0.175;
+    else aliquota = 0.15;
+    return ganho * aliquota;
+  }
+  if (ir.includes('20%')) return ganho * 0.20;
+  if (ir.includes('15%')) return ganho * 0.15;
+  return 0;
+}
+
+function calcSimulador() {
+  const capital = parseFloat(document.getElementById('calc-sim-capital')?.value) || 0;
+  const prazo   = parseFloat(document.getElementById('calc-sim-prazo')?.value) || 0;
+  const unidade = parseFloat(document.getElementById('calc-sim-unidade')?.value) || 1;
+  const aporte  = parseFloat(document.getElementById('calc-sim-aporte')?.value) || 0;
+  const meses = Math.round(prazo * unidade);
+
+  const el = document.getElementById('calc-sim-result');
+  const aviso = document.getElementById('calc-sim-aviso');
+  if (!capital && !aporte) { el.innerHTML = ''; return; }
+  if (!meses) { el.innerHTML = '<div style="font-size:12px;color:var(--texto-3);padding:8px 2px;">Informe o prazo para simular.</div>'; return; }
+
+  aviso.style.display = perfilInvestidor ? 'none' : 'block';
+
+  const elegiveis = ATIVOS.filter(a => a.rentabPct !== undefined);
+
+  simUltimoResultado = elegiveis.map(ativo => {
+    const im = Math.pow(1 + ativo.rentabPct, 1/12) - 1;
+    const fv = im === 0
+      ? capital + aporte * meses
+      : capital * Math.pow(1 + im, meses) + aporte * ((Math.pow(1 + im, meses) - 1) / im);
+    const totalInvestido = capital + aporte * meses;
+    const ganhoBruto = fv - totalInvestido;
+    const imposto = calcularIRSimulado(ativo, meses, ganhoBruto);
+    const valorLiquido = fv - imposto;
+    return { ativo, totalInvestido, ganhoBruto, imposto, valorLiquido };
+  }).sort((a,b) => b.valorLiquido - a.valorLiquido);
+
+  renderSimResultado();
+}
+
+function toggleSim(sigla) {
+  if (simAbertos.has(sigla)) simAbertos.delete(sigla);
+  else simAbertos.add(sigla);
+  renderSimResultado();
+}
+
+function renderSimResultado() {
+  const el = document.getElementById('calc-sim-result');
+  if (!simUltimoResultado.length) { el.innerHTML = ''; return; }
+
+  const corRisco = { 1: 'var(--verde)', 2: '#378ADD', 3: 'var(--coral)' };
+  const labelRisco = { 1: 'Baixo risco', 2: 'Risco moderado', 3: 'Risco mais alto' };
+
+  el.innerHTML = simUltimoResultado.map(r => {
+    const a = r.ativo;
+    const aberto = simAbertos.has(a.sigla);
+    const alinhado = perfilInvestidor === 'Conservador' ? a.risco<=1 : perfilInvestidor === 'Moderado' ? a.risco<=2 : true;
+    return `
+    <div style="border:0.5px solid var(--borda-2);border-radius:var(--r-sm);overflow:hidden;">
+      <div onclick="toggleSim('${a.sigla}')" style="display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;background:var(--branco);">
+        <span style="width:9px;height:9px;border-radius:50%;background:${corRisco[a.risco]};flex-shrink:0;" title="${labelRisco[a.risco]}"></span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;">${a.nome}${perfilInvestidor && alinhado ? '<span style="font-size:10px;font-weight:500;color:var(--verde-600);background:var(--verde-100);padding:1px 6px;border-radius:8px;">seu perfil</span>' : ''}</div>
+          <div style="font-size:11px;color:var(--texto-2);">${a.rentab}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:14px;font-weight:600;color:var(--verde-600);">${money0(r.valorLiquido)}</div>
+          <div style="font-size:10px;color:var(--texto-3);">líquido final</div>
+        </div>
+        <span style="font-size:11px;color:var(--texto-3);display:inline-block;transition:transform .15s;transform:rotate(${aberto?90:0}deg);flex-shrink:0;">▶</span>
+      </div>
+      ${aberto ? `
+      <div style="padding:12px 14px;background:var(--cinza-100);display:flex;flex-direction:column;gap:6px;font-size:12px;">
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--texto-2);">Total investido</span><span style="font-weight:500;">${money(r.totalInvestido)}</span></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--texto-2);">Rendimento bruto</span><span style="font-weight:500;">${money(r.ganhoBruto)}</span></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--texto-2);">Imposto estimado (${a.ir})</span><span style="font-weight:500;color:${r.imposto>0?'var(--coral-600)':'var(--verde-600)'};">${r.imposto>0?'− '+money(r.imposto):'Isento'}</span></div>
+        <div style="height:0.5px;background:rgba(0,0,0,0.08);margin:2px 0;"></div>
+        <div style="display:flex;justify-content:space-between;"><span style="font-weight:600;">Valor líquido final</span><span style="font-weight:600;color:var(--verde-600);">${money(r.valorLiquido)}</span></div>
+        <div style="font-size:11px;color:var(--texto-3);margin-top:4px;line-height:1.4;">${a.desc}</div>
+      </div>` : ''}
+    </div>`;
   }).join('');
 }
 
