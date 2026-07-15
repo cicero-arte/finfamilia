@@ -1973,6 +1973,7 @@ function renderDash() {
   const coresPizza = ['#1D9E75','#5DCAA5','#378ADD','#85B7EB','#D4537E','#EF9F27','#B4B2A9','#9F7AEA'];
   const slices = csPizza.filter(c=>saldoEmReais(c)>0).map((c,i)=>({
     nome: m==='familia' ? `${nomeMembro(c.titular)} · ${c.nome}` : c.nome,
+    banco: bancoDaConta(c),
     val: saldoEmReais(c),
     cor: coresPizza[i % coresPizza.length]
   }));
@@ -2028,7 +2029,7 @@ function renderSelecaoContas(m, cs, deselecionadas) {
     const marcada = !deselecionadas.includes(c.id);
     return `<div onclick="toggleContaSelecionada('${c.id}')" style="display:flex;align-items:center;gap:8px;padding:7px 6px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:500;" onmouseover="this.style.background='var(--cinza-100)'" onmouseout="this.style.background='transparent'">
       <div style="width:16px;height:16px;border-radius:5px;border:1.5px solid ${marcada?'var(--verde)':'var(--cinza-200)'};background:${marcada?'var(--verde)':'var(--branco)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:10px;">${marcada?'✓':''}</div>
-      <span style="flex:1;">${c.icon} ${c.nome}${c.titular==='familia'?' 👨‍👩‍👧':''}</span>
+      <span style="flex:1;">${c.icon} ${c.nome}${c.titular==='familia'?' 👨‍👩‍👧':''} <span style="color:var(--texto-3);font-size:10px;">🏦 ${bancoDaConta(c)}</span></span>
       <span style="font-size:11px;color:var(--texto-3);">${saldoOculto ? '••••' : simboloMoeda(c)+' '+fmt0(c.saldo)}</span>
     </div>`;
   }).join('');
@@ -2049,7 +2050,7 @@ function renderPizza(slices, total) {
   leg.innerHTML = slices.map(s=>`
     <div class="p-leg" onclick="pizzaFoco('${s.nome}',${s.val},${total})">
       <div class="p-dot" style="background:${s.cor}"></div>
-      <div class="p-nome">${s.nome}</div>
+      <div class="p-nome">${s.nome} <span style="color:var(--texto-3);font-size:10px;">🏦 ${s.banco}</span></div>
       <div class="p-val">${money0(s.val)}</div>
       <div class="p-pct">${Math.round(s.val/total*100)}%</div>
     </div>`).join('');
