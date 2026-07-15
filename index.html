@@ -907,7 +907,11 @@
     </div>
 
     <div class="field">
-      <label>Conta</label>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <label>Conta</label>
+        <span onclick="toggleLancFiltros()" style="font-size:11px;color:var(--verde-600);cursor:pointer;font-weight:500;">🔍 Filtrar <span id="l-filtro-icon" style="display:inline-block;transition:transform .15s;">▾</span></span>
+      </div>
+      <div id="l-conta-filtros" style="display:none;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
       <div class="cc-grid" id="l-contas"></div>
     </div>
 
@@ -1852,6 +1856,10 @@ function money0(v) { return saldoOculto ? 'R$ ••••' : 'R$ '+fmt0(v); }
 function money(v)  { return saldoOculto ? 'R$ ••••' : 'R$ '+fmt(v); }
 let lancTipo = 'e';
 let lancConta = null;
+let lancFiltrosAbertos = false;
+let lancFiltroTitular = 'todos';
+let lancFiltroBanco = 'todos';
+let lancFiltroTipo = 'todos';
 let contaEditId = null;
 let icoContaSel = '💳';
 let icoMetaSel = '🏖️';
@@ -2473,17 +2481,64 @@ function setTipo(t) {
   btn.textContent=(t==='e'?'+ Registrar entrada':'+ Registrar saída');
 }
 
+function toggleLancFiltros() {
+  lancFiltrosAbertos = !lancFiltrosAbertos;
+  document.getElementById('l-conta-filtros').style.display = lancFiltrosAbertos ? 'flex' : 'none';
+  document.getElementById('l-filtro-icon').style.transform = lancFiltrosAbertos ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+function setLancFiltro(dim, valor) {
+  if (dim === 'titular') lancFiltroTitular = valor;
+  if (dim === 'banco') lancFiltroBanco = valor;
+  if (dim === 'tipo') lancFiltroTipo = valor;
+  renderLancContas();
+}
+
+function chipsFiltro(dim, valorAtual, opcoes) {
+  return `<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;">
+    <button class="chip ${valorAtual==='todos'?'ativo':''}" style="white-space:nowrap;flex-shrink:0;font-size:11px;padding:5px 10px;" onclick="setLancFiltro('${dim}','todos')">Todos</button>
+    ${opcoes.map(o=>`<button class="chip ${valorAtual===o?'ativo':''}" style="white-space:nowrap;flex-shrink:0;font-size:11px;padding:5px 10px;" onclick="setLancFiltro('${dim}','${o.replace(/'/g,"\\'")}')">${o}</button>`).join('')}
+  </div>`;
+}
+
 function renderLancContas() {
-  const cs = contas.filter(c=>!c.inativa);
+  const todas = contas.filter(c=>!c.inativa);
   const el = document.getElementById('l-contas');
 
-  if(!cs.length) {
+  if(!todas.length) {
     el.innerHTML = '<div style="grid-column:1/-1;font-size:13px;color:var(--texto-2);padding:8px 0;">Nenhuma conta criada ainda. Vá em <strong>Contas</strong> e crie uma primeiro.</div>';
     lancConta = null;
+    document.getElementById('l-conta-filtros').innerHTML = '';
     return;
   }
 
-  // mantém conta selecionada se ainda existe, senão vai para a primeira
+  // opções de filtro, geradas a partir das contas existentes
+  const titulares = [...new Set(todas.map(c=>c.titular))];
+  const bancos = [...new Set(todas.map(bancoDaConta))].sort();
+  const tipos = [...new Set(todas.map(c=>c.tipo).filter(Boolean))];
+
+  document.getElementById('l-conta-filtros').innerHTML = (titulares.length>1 ? `
+    <div style="font-size:10px;color:var(--texto-3);font-weight:500;">TITULAR</div>
+    ${chipsFiltro('titular', lancFiltroTitular, titulares.map(t=>nomeMembro(t)))}` : '') +
+    (bancos.length>1 ? `
+    <div style="font-size:10px;color:var(--texto-3);font-weight:500;margin-top:2px;">INSTITUIÇÃO</div>
+    ${chipsFiltro('banco', lancFiltroBanco, bancos)}` : '') +
+    (tipos.length>1 ? `
+    <div style="font-size:10px;color:var(--texto-3);font-weight:500;margin-top:2px;">TIPO</div>
+    ${chipsFiltro('tipo', lancFiltroTipo, tipos)}` : '');
+
+  const cs = todas.filter(c =>
+    (lancFiltroTitular==='todos' || nomeMembro(c.titular)===lancFiltroTitular) &&
+    (lancFiltroBanco==='todos' || bancoDaConta(c)===lancFiltroBanco) &&
+    (lancFiltroTipo==='todos' || c.tipo===lancFiltroTipo)
+  );
+
+  if(!cs.length) {
+    el.innerHTML = '<div style="grid-column:1/-1;font-size:13px;color:var(--texto-2);padding:8px 0;">Nenhuma conta com esse filtro. <span onclick="lancFiltroTitular=\'todos\';lancFiltroBanco=\'todos\';lancFiltroTipo=\'todos\';renderLancContas();" style="color:var(--verde-600);cursor:pointer;font-weight:500;">Limpar filtros</span></div>';
+    return;
+  }
+
+  // mantém conta selecionada se ainda existe (e passa no filtro), senão vai para a primeira visível
   if(!lancConta || !cs.find(c=>c.id===lancConta)) {
     lancConta = cs[0].id;
   }
@@ -2492,6 +2547,7 @@ function renderLancContas() {
     <div class="cc ${c.id===lancConta?'sel':''}" data-cid="${c.id}" onclick="selConta(this,'${c.id}')">
       <div class="cc-ico">${c.icon}</div>
       <div class="cc-nome">${c.nome}</div>
+      <div class="cc-val" style="font-size:9px;color:var(--texto-3);">🏦 ${bancoDaConta(c)}</div>
       <div class="cc-val" style="font-size:10px;color:var(--texto-2);">${nomeMembro(c.titular)}</div>
       <div style="font-size:10px;font-weight:500;color:${c.id===lancConta?'var(--verde-600)':'var(--texto-3)'};">${saldoOculto ? '••••' : simboloMoeda(c)+' '+fmt0(c.saldo)}</div>
     </div>`).join('');
