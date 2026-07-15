@@ -959,8 +959,15 @@
     <div class="topbar-info">
       <div class="topbar-title" id="extrato-titulo">Lançamentos</div>
     </div>
+    <button class="btn-icon" onclick="toggleBuscaExtrato()" title="Buscar" style="flex-shrink:0;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+    </button>
   </div>
   <div class="scroll-body">
+    <div class="field" id="extrato-busca-row" style="display:none;margin-bottom:12px;">
+      <input type="text" id="extrato-busca" placeholder="Buscar por descrição, categoria ou valor..." oninput="buscarExtrato()">
+    </div>
+    <div id="extrato-busca-vazio" style="display:none;font-size:13px;color:var(--texto-2);padding:8px 0;">Nenhum lançamento encontrado para essa busca.</div>
     <div class="card">
       <div class="tx-list" id="extrato-txs"></div>
     </div>
@@ -2454,11 +2461,47 @@ function selIco(el) {
 // ══════════════════════════
 let extratoVoltarPara = 't-dash';
 
+let extratoListaCompleta = [];
+
 function abrirExtrato(txs, titulo, voltarPara) {
   extratoVoltarPara = voltarPara || 't-dash';
+  extratoListaCompleta = txs;
   document.getElementById('extrato-titulo').textContent = titulo;
+  document.getElementById('extrato-busca').value = '';
+  document.getElementById('extrato-busca-row').style.display = 'none';
+  document.getElementById('extrato-busca-vazio').style.display = 'none';
   renderTxList('extrato-txs', txs);
   ir('t-extrato');
+}
+
+function toggleBuscaExtrato() {
+  const row = document.getElementById('extrato-busca-row');
+  const aberta = row.style.display !== 'none';
+  row.style.display = aberta ? 'none' : 'block';
+  if (aberta) {
+    document.getElementById('extrato-busca').value = '';
+    buscarExtrato();
+  } else {
+    document.getElementById('extrato-busca').focus();
+  }
+}
+
+function buscarExtrato() {
+  const q = document.getElementById('extrato-busca').value.trim().toLowerCase();
+  let lista = extratoListaCompleta;
+  if (q) {
+    const qValor = parseFloat(q.replace(',', '.'));
+    lista = extratoListaCompleta.filter(t => {
+      if (t.desc.toLowerCase().includes(q)) return true;
+      if (t.cat && t.cat.toLowerCase().includes(q)) return true;
+      if (t.conta && t.conta.toLowerCase().includes(q)) return true;
+      if (fmt(t.val).toLowerCase().includes(q)) return true;
+      if (!isNaN(qValor) && Math.abs(t.val - qValor) < 0.01) return true;
+      return false;
+    });
+  }
+  document.getElementById('extrato-busca-vazio').style.display = (q && !lista.length) ? 'block' : 'none';
+  renderTxList('extrato-txs', lista);
 }
 
 function initLanc() {
