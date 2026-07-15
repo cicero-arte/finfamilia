@@ -345,6 +345,7 @@
     }
     .tipo-btn.e.ativo { background: var(--verde-100); color: var(--verde-800); }
     .tipo-btn.s.ativo { background: var(--coral-100); color: var(--coral-800); }
+    .tipo-btn.t.ativo { background: var(--azul-100); color: var(--azul-600); }
 
     /* icon picker */
     .icon-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 8px; }
@@ -391,6 +392,8 @@
     .btn-prim.g:hover { background: var(--verde-600); }
     .btn-prim.r { background: var(--coral); color: white; }
     .btn-prim.r:hover { background: var(--coral-600); }
+    .btn-prim.a { background: var(--azul-600); color: white; }
+    .btn-prim.a:hover { background: #134a80; }
     .btn-sec {
       flex: 1; padding: 12px; border: 0.5px solid var(--borda-2);
       border-radius: var(--r-sm); background: transparent;
@@ -879,9 +882,10 @@
   <div class="scroll-body">
     <div id="l-toast-inline" style="display:none;padding:10px 14px;border-radius:var(--r-sm);font-size:13px;font-weight:500;"></div>
 
-    <div class="tipo-tgl">
+    <div class="tipo-tgl" style="grid-template-columns:repeat(3,1fr);">
       <button class="tipo-btn e ativo" id="tb-e" onclick="setTipo('e')">↓ Entrada</button>
       <button class="tipo-btn s" id="tb-s" onclick="setTipo('s')">↑ Saída</button>
+      <button class="tipo-btn t" id="tb-t" onclick="setTipo('t')">🔁 Transf.</button>
     </div>
 
     <div class="field">
@@ -896,9 +900,9 @@
 
     <div class="field"><label>Descrição</label><input type="text" id="l-desc" placeholder="Ex: Supermercado, Salário, Netflix..."></div>
 
-    <div class="two-col">
+    <div class="two-col" id="l-data-cat-row">
       <div class="field"><label>Data</label><input type="date" id="l-data"></div>
-      <div class="field">
+      <div class="field" id="l-cat-field">
         <label>Categoria</label>
         <select id="l-cat">
           <option value="">Selecione</option>
@@ -906,7 +910,7 @@
       </div>
     </div>
 
-    <div class="field">
+    <div class="field" id="l-conta-field">
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <label>Conta</label>
         <span onclick="toggleLancFiltros()" style="font-size:11px;color:var(--verde-600);cursor:pointer;font-weight:500;">🔍 Filtrar <span id="l-filtro-icon" style="display:inline-block;transition:transform .15s;">▾</span></span>
@@ -915,7 +919,15 @@
       <div class="cc-grid" id="l-contas"></div>
     </div>
 
-    <div class="rec-row">
+    <div class="field" id="l-transf-field" style="display:none;">
+      <label>Transferir de</label>
+      <select id="l-transf-origem" onchange="atualizarResumoTransf()" style="margin-bottom:10px;"></select>
+      <label>Transferir para</label>
+      <select id="l-transf-destino" onchange="atualizarResumoTransf()"></select>
+      <div id="l-transf-resumo" style="font-size:12px;color:var(--texto-2);margin-top:8px;"></div>
+    </div>
+
+    <div class="rec-row" id="l-rec-row">
       <div>
         <div class="rec-lbl">Lançamento recorrente</div>
         <div class="rec-sub">Repete todo mês automaticamente</div>
@@ -2453,8 +2465,13 @@ function initLanc() {
   lancTipo='e';
   document.getElementById('tb-e').className='tipo-btn e ativo';
   document.getElementById('tb-s').className='tipo-btn s';
+  document.getElementById('tb-t').className='tipo-btn t';
   document.getElementById('l-btn').className='btn-prim g';
   document.getElementById('l-btn').textContent='+ Registrar entrada';
+  document.getElementById('l-conta-field').style.display='flex';
+  document.getElementById('l-transf-field').style.display='none';
+  document.getElementById('l-cat-field').style.display='flex';
+  document.getElementById('l-rec-row').style.display='flex';
   document.getElementById('l-data').valueAsDate=new Date();
   document.getElementById('l-val').value='';
   document.getElementById('l-desc').value='';
@@ -2476,9 +2493,49 @@ function setTipo(t) {
   lancTipo=t;
   document.getElementById('tb-e').className='tipo-btn e'+(t==='e'?' ativo':'');
   document.getElementById('tb-s').className='tipo-btn s'+(t==='s'?' ativo':'');
+  document.getElementById('tb-t').className='tipo-btn t'+(t==='t'?' ativo':'');
   const btn=document.getElementById('l-btn');
-  btn.className='btn-prim '+(t==='e'?'g':'r');
-  btn.textContent=(t==='e'?'+ Registrar entrada':'+ Registrar saída');
+
+  document.getElementById('l-conta-field').style.display = t==='t' ? 'none' : 'flex';
+  document.getElementById('l-transf-field').style.display = t==='t' ? 'flex' : 'none';
+  document.getElementById('l-cat-field').style.display = t==='t' ? 'none' : 'flex';
+  document.getElementById('l-rec-row').style.display = t==='t' ? 'none' : 'flex';
+
+  if (t==='t') {
+    btn.className='btn-prim a';
+    btn.textContent='🔁 Registrar transferência';
+    renderLancTransfSelects();
+  } else {
+    btn.className='btn-prim '+(t==='e'?'g':'r');
+    btn.textContent=(t==='e'?'+ Registrar entrada':'+ Registrar saída');
+  }
+}
+
+function renderLancTransfSelects() {
+  const cs = contas.filter(c=>!c.inativa);
+  const opcoes = cs.map(c=>`<option value="${c.id}">${c.nome} (${bancoDaConta(c)}) — ${nomeMembro(c.titular)}</option>`).join('');
+  const origemSel = document.getElementById('l-transf-origem');
+  const destinoSel = document.getElementById('l-transf-destino');
+  const origemAntes = origemSel.value, destinoAntes = destinoSel.value;
+  origemSel.innerHTML = `<option value="">Selecione</option>${opcoes}`;
+  destinoSel.innerHTML = `<option value="">Selecione</option>${opcoes}`;
+  if (cs.find(c=>c.id===origemAntes)) origemSel.value = origemAntes;
+  else if (cs[0]) origemSel.value = cs[0].id;
+  if (cs.find(c=>c.id===destinoAntes)) destinoSel.value = destinoAntes;
+  else if (cs[1]) destinoSel.value = cs[1].id;
+  atualizarResumoTransf();
+}
+
+function atualizarResumoTransf() {
+  const origemId = document.getElementById('l-transf-origem').value;
+  const destinoId = document.getElementById('l-transf-destino').value;
+  const resumo = document.getElementById('l-transf-resumo');
+  if (origemId && origemId === destinoId) {
+    resumo.innerHTML = '⚠️ A conta de origem e destino não podem ser a mesma.';
+    resumo.style.color = 'var(--coral-600)';
+  } else {
+    resumo.innerHTML = '';
+  }
 }
 
 function toggleLancFiltros() {
@@ -2645,6 +2702,7 @@ Regras:
 }
 
 async function lancar() {
+  if (lancTipo === 't') { await lancarTransferencia(); return; }
   const val  = parseFloat(document.getElementById('l-val').value);
   const desc = document.getElementById('l-desc').value.trim();
   const data = document.getElementById('l-data').value || new Date().toISOString().slice(0,10);
@@ -2683,6 +2741,60 @@ async function lancar() {
   document.getElementById('l-desc').value='';
   document.getElementById('l-cat').value='';
   document.getElementById('l-rec').classList.remove('on');
+  renderTxList('l-txs', transacoes.slice(0,5));
+  renderContas();
+  renderDash();
+}
+
+async function lancarTransferencia() {
+  const val  = parseFloat(document.getElementById('l-val').value);
+  const descInput = document.getElementById('l-desc').value.trim();
+  const data = document.getElementById('l-data').value || new Date().toISOString().slice(0,10);
+  const origemId  = document.getElementById('l-transf-origem').value;
+  const destinoId = document.getElementById('l-transf-destino').value;
+
+  if(!val||val<=0) { toast('Digite um valor maior que zero.', true); return; }
+  if(!origemId || !destinoId) { toast('Selecione a conta de origem e a de destino.', true); return; }
+  if(origemId === destinoId) { toast('A conta de origem e destino não podem ser a mesma.', true); return; }
+
+  const origem = contas.find(c=>c.id===origemId);
+  const destino = contas.find(c=>c.id===destinoId);
+  if(!origem || !destino) { toast('Conta não encontrada. Selecione outra.', true); return; }
+
+  const grupoId = crypto.randomUUID();
+  const descSaida  = descInput || `Transferência para ${destino.nome}`;
+  const descEntrada = descInput || `Transferência de ${origem.nome}`;
+  const titularOrigemId  = origem.titular==='familia'  ? null : origem.titular;
+  const titularDestinoId = destino.titular==='familia' ? null : destino.titular;
+
+  const { data: txSaida, error: erroSaida } = await sb.from('transacoes').insert({
+    family_id: perfilAtual.family_id, conta_id: origem.id, titular_id: titularOrigemId,
+    tipo: 's', val, descricao: descSaida, data, categoria: 'Transferência'
+  }).select().single();
+  if(erroSaida) { toast('Não foi possível registrar a transferência. Tente de novo.', true); return; }
+
+  const { data: txEntrada, error: erroEntrada } = await sb.from('transacoes').insert({
+    family_id: perfilAtual.family_id, conta_id: destino.id, titular_id: titularDestinoId,
+    tipo: 'e', val, descricao: descEntrada, data, categoria: 'Transferência'
+  }).select().single();
+  if(erroEntrada) {
+    // desfaz a perna de saída pra não deixar transferência pela metade
+    await sb.from('transacoes').delete().eq('id', txSaida.id);
+    toast('Não foi possível registrar a transferência. Tente de novo.', true);
+    return;
+  }
+
+  origem.saldo -= val;
+  destino.saldo += val;
+  await sb.from('contas').update({ saldo: origem.saldo }).eq('id', origem.id);
+  await sb.from('contas').update({ saldo: destino.saldo }).eq('id', destino.id);
+
+  transacoes.unshift({id:txEntrada.id, tipo:'e', val, desc:descEntrada, data, cat:'Transferência', conta:destino.nome, titular:destino.titular, contaId:destino.id, transferGrupo:grupoId});
+  transacoes.unshift({id:txSaida.id,  tipo:'s', val, desc:descSaida,  data, cat:'Transferência', conta:origem.nome,  titular:origem.titular,  contaId:origem.id,  transferGrupo:grupoId});
+
+  toast(`🔁 R$ ${fmt(val)} transferido de ${origem.nome} para ${destino.nome}!`);
+  document.getElementById('l-val').value='';
+  document.getElementById('l-desc').value='';
   renderTxList('l-txs', transacoes.slice(0,5));
   renderContas();
   renderDash();
