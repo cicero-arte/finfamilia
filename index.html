@@ -2494,10 +2494,13 @@ function setLancFiltro(dim, valor) {
   renderLancContas();
 }
 
-function chipsFiltro(dim, valorAtual, opcoes) {
-  return `<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;">
-    <button class="chip ${valorAtual==='todos'?'ativo':''}" style="white-space:nowrap;flex-shrink:0;font-size:11px;padding:5px 10px;" onclick="setLancFiltro('${dim}','todos')">Todos</button>
-    ${opcoes.map(o=>`<button class="chip ${valorAtual===o?'ativo':''}" style="white-space:nowrap;flex-shrink:0;font-size:11px;padding:5px 10px;" onclick="setLancFiltro('${dim}','${o.replace(/'/g,"\\'")}')">${o}</button>`).join('')}
+function selectFiltro(dim, label, valorAtual, opcoes) {
+  return `<div class="field" style="gap:3px;">
+    <label style="font-size:10px;">${label}</label>
+    <select onchange="setLancFiltro('${dim}',this.value)" style="font-size:12px;padding:8px 10px;">
+      <option value="todos" ${valorAtual==='todos'?'selected':''}>Todos</option>
+      ${opcoes.map(o=>`<option ${valorAtual===o?'selected':''}>${o}</option>`).join('')}
+    </select>
   </div>`;
 }
 
@@ -2517,15 +2520,15 @@ function renderLancContas() {
   const bancos = [...new Set(todas.map(bancoDaConta))].sort();
   const tipos = [...new Set(todas.map(c=>c.tipo).filter(Boolean))];
 
-  document.getElementById('l-conta-filtros').innerHTML = (titulares.length>1 ? `
-    <div style="font-size:10px;color:var(--texto-3);font-weight:500;">TITULAR</div>
-    ${chipsFiltro('titular', lancFiltroTitular, titulares.map(t=>nomeMembro(t)))}` : '') +
-    (bancos.length>1 ? `
-    <div style="font-size:10px;color:var(--texto-3);font-weight:500;margin-top:2px;">INSTITUIÇÃO</div>
-    ${chipsFiltro('banco', lancFiltroBanco, bancos)}` : '') +
-    (tipos.length>1 ? `
-    <div style="font-size:10px;color:var(--texto-3);font-weight:500;margin-top:2px;">TIPO</div>
-    ${chipsFiltro('tipo', lancFiltroTipo, tipos)}` : '');
+  const filtrosAtivos = [
+    titulares.length>1 ? selectFiltro('titular','Titular', lancFiltroTitular, titulares.map(t=>nomeMembro(t))) : '',
+    bancos.length>1 ? selectFiltro('banco','Instituição', lancFiltroBanco, bancos) : '',
+    tipos.length>1 ? selectFiltro('tipo','Tipo', lancFiltroTipo, tipos) : '',
+  ].filter(Boolean);
+
+  document.getElementById('l-conta-filtros').innerHTML = filtrosAtivos.length
+    ? `<div style="display:grid;grid-template-columns:repeat(${filtrosAtivos.length},1fr);gap:8px;">${filtrosAtivos.join('')}</div>`
+    : '';
 
   const cs = todas.filter(c =>
     (lancFiltroTitular==='todos' || nomeMembro(c.titular)===lancFiltroTitular) &&
